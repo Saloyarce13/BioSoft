@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "🌐 WEB (Frontend)",
+			"path": "../../.."
+		},
+		{
+			"name": "⚙️ API (Backend)",
+			"path": "../../../api"
+		},
+		{
+			"name": "📱 MOVIL (App)",
+			"path": "../../../../BioNatural-main"
+		}
+	],
+	"settings": {}
+}

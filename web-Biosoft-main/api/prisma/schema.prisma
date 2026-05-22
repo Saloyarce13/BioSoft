@@ -1,0 +1,326 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  password      String
+  phone         String?
+  address       String?
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  roleId        Int
+  role          Role      @relation(fields: [roleId], references: [id])
+  sales         Sale[]    @relation("SaleCreatedBy")
+  purchases     Purchase[] @relation("PurchaseCreatedBy")
+  transactions  Transaction[]
+
+  @@map("users")
+}
+
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  users       User[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  roles       RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int
+  permissionId Int
+  createdAt    DateTime   @default(now())
+
+  // Relations
+  role         Role       @relation(fields: [roleId], references: [id])
+  permission   Permission @relation(fields: [permissionId], references: [id])
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Provider {
+  id             Int      @id @default(autoincrement())
+  name           String
+  businessName   String?
+  documentType   String?
+  documentNumber String?
+  contactPerson  String?
+  email          String?  @unique
+  phone          String?
+  address        String?
+  website        String?
+  notes          String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  products         Product[]
+  productProviders ProductProvider[]
+  purchases        Purchase[]
+
+  @@map("providers")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  price       Float
+  stock       Int      @default(0)
+  minStock    Int      @default(0)
+  sku         String?  @unique
+  image       String?
+  cost        Float?
+  weight      Float?
+  barcode     String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  categoryId    Int
+  category      Category  @relation(fields: [categoryId], references: [id])
+  providerId    Int?
+  provider      Provider? @relation(fields: [providerId], references: [id])
+
+  providers     ProductProvider[]
+  saleItems     SaleItem[]
+  purchaseItems PurchaseItem[]
+
+  @@map("products")
+}
+
+model ProductProvider {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  providerId Int
+  createdAt  DateTime @default(now())
+
+  // Relations
+  product    Product  @relation(fields: [productId], references: [id])
+  provider   Provider @relation(fields: [providerId], references: [id])
+
+  @@unique([productId, providerId])
+  @@map("product_providers")
+}
+
+model Employee {
+  id             Int       @id @default(autoincrement())
+  fullName       String
+  email          String?   @unique
+  phone          String?
+  documentType   String?
+  documentNumber String?   @unique
+  address        String?
+  birthDate      DateTime?
+  position       String?
+  salary         Float?
+  hireDate       DateTime?
+  password       String
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  sales          Sale[]
+  purchases      Purchase[]
+
+  @@map("employees")
+}
+
+model Client {
+  id             Int      @id @default(autoincrement())
+  name           String
+  email          String?  @unique
+  phone          String?
+  address        String?
+  documentType   String?
+  documentNumber String?  @unique
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  sales          Sale[]
+
+  @@map("clients")
+}
+
+model Sale {
+  id              Int      @id @default(autoincrement())
+  totalPrice      Float    @default(0)
+  status          String   @default("REGISTERED")
+  notes           String?
+  saleDate        DateTime @default(now())
+  pdfUrl          String?
+  readyAt         DateTime? // cuando el admin marca como listo para recoger
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  clientId        Int
+  client          Client   @relation(fields: [clientId], references: [id])
+  employeeId      Int?
+  employee        Employee? @relation(fields: [employeeId], references: [id])
+  createdByUserId Int?
+  createdByUser   User?    @relation("SaleCreatedBy", fields: [createdByUserId], references: [id])
+
+  items           SaleItem[]
+  transactions    Transaction[]
+
+  @@map("sales")
+}
+
+model SaleItem {
+  id        Int     @id @default(autoincrement())
+  quantity  Int
+  unitPrice Float
+  lineTotal Float
+
+  // Relations
+  saleId    Int
+  sale      Sale    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@unique([saleId, productId])
+  @@map("sale_items")
+}
+
+model Purchase {
+  id              Int      @id @default(autoincrement())
+  totalPrice      Float    @default(0)
+  status          String   @default("REGISTERED")
+  notes           String?
+  purchasedAt     DateTime @default(now())
+  pdfUrl          String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  providerId      Int?
+  provider        Provider? @relation(fields: [providerId], references: [id])
+  employeeId      Int?
+  employee        Employee? @relation(fields: [employeeId], references: [id])
+  createdByUserId Int?
+  createdByUser   User?    @relation("PurchaseCreatedBy", fields: [createdByUserId], references: [id])
+
+  items           PurchaseItem[]
+  transactions    Transaction[]
+
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id         Int      @id @default(autoincrement())
+  quantity   Int
+  unitCost   Float
+  lineTotal  Float
+
+  // Relations
+  purchaseId Int
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+
+  @@unique([purchaseId, productId])
+  @@map("purchase_items")
+}
+
+model Transaction {
+  id         Int      @id @default(autoincrement())
+  type       String   // STOCK_IN, STOCK_OUT, SALE, PURCHASE, etc.
+  amount     Float    @default(0)
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  // Relations
+  userId     Int?
+  user       User?    @relation(fields: [userId], references: [id])
+  saleId     Int?
+  sale       Sale?    @relation(fields: [saleId], references: [id])
+  purchaseId Int?
+  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
+
+  @@map("transactions")
+}
+
+model PasswordResetCode {
+  id        Int      @id @default(autoincrement())
+  email     String
+  codeHash  String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_codes")
+}
+
+// ─── Configuración del sistema ─────────────────────────────────────────────────
+// Almacena pares clave-valor de configuración global.
+// El campo `value` es JSON para soportar strings, arrays y objetos.
+model SystemConfig {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       Json
+  description String?
+  group       String?  // Agrupación lógica: "document_types", "sale_statuses", etc.
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_config")
+}
