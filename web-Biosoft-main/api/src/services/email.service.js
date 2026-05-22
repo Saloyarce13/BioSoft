@@ -26,12 +26,20 @@ const getTransporter = () => {
 };
 
 const FROM = () => process.env.EMAIL_FROM || process.env.EMAIL_USER || 'no-reply@bionatural.local';
+const REPLY_TO = () => process.env.EMAIL_REPLY_TO || undefined;
 
 // ─── Helper interno ────────────────────────────────────────────────────────────
 const send = async ({ to, subject, html, text }) => {
   const transporter = getTransporter();
   try {
-    await transporter.sendMail({ from: FROM(), to, subject, html, text });
+    await transporter.sendMail({
+      from: FROM(),
+      replyTo: REPLY_TO(),
+      to,
+      subject,
+      html,
+      text,
+    });
   } catch (err) {
     console.error('[EMAIL ERROR]', err.message);
   }
