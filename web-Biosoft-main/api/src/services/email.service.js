@@ -3,10 +3,10 @@ const nodemailer = require('nodemailer');
 
 // ─── Transporter ──────────────────────────────────────────────────────────────
 const getTransporter = () => {
-  const host = process.env.EMAIL_HOST;
-  const port = Number(process.env.EMAIL_PORT || 587);
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASS;
+  const host = (process.env.EMAIL_HOST || process.env.SMTP_HOST || '').trim();
+  const port = Number(process.env.EMAIL_PORT || process.env.SMTP_PORT || 587);
+  const user = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
+  const pass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
 
   if (!host || !user || !pass) {
     return {
@@ -25,8 +25,10 @@ const getTransporter = () => {
   });
 };
 
-const FROM = () => process.env.EMAIL_FROM || process.env.EMAIL_USER || 'no-reply@bionatural.local';
-const REPLY_TO = () => process.env.EMAIL_REPLY_TO || undefined;
+const FROM = () =>
+  (process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER || 'no-reply@bionatural.local').trim();
+const REPLY_TO = () =>
+  (process.env.EMAIL_REPLY_TO || process.env.SMTP_REPLY_TO || '').trim() || undefined;
 
 // ─── Helper interno ────────────────────────────────────────────────────────────
 const send = async ({ to, subject, html, text }) => {
