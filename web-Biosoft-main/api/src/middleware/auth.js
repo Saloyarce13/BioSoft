@@ -15,13 +15,22 @@ const logger = winston.createLogger({
 });
 
 const JWT_SECRET = process.env.JWT_SECRET || 'bionatural-secret-key-2024';
+const AUTH_COOKIE_NAME = 'authToken';
+
+const extractTokenFromRequest = (req) => {
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.split(' ')[1];
+  }
+
+  return req.cookies?.[AUTH_COOKIE_NAME] || null;
+};
 
 // Middleware para verificar token JWT
 const authenticateToken = async (req, res, next) => {
   console.log(`DEBUG AUTH: ${req.method} ${req.originalUrl}`);
   try {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+    const token = extractTokenFromRequest(req);
 
     if (!token) {
       return res.status(401).json({ 
@@ -146,8 +155,7 @@ const requireRole = (roleName) => {
 // Middleware opcional de autenticación (no falla si no hay token)
 const optionalAuth = async (req, res, next) => {
   try {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const token = extractTokenFromRequest(req);
 
     if (token) {
       const decoded = jwt.verify(token, JWT_SECRET);

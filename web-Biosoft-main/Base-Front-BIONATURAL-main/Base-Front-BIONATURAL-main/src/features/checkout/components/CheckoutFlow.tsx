@@ -62,7 +62,6 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
         await authRegister(loginData.name, loginData.email, loginData.password, 4, loginData.phone || undefined);
       }
       const res = await authLogin(loginData.email, loginData.password);
-      localStorage.setItem('authToken', res.data.token);
       onLogin({ name: res.data.user.name, email: res.data.user.email, role: res.data.user.role, permissions: res.data.user.permissions });
       setStep('pickup');
       toast.success(loginData.isNew ? '¡Cuenta creada! Continúa con tu pedido' : '¡Bienvenido de vuelta!');
@@ -126,7 +125,7 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
               {cartItems.length} producto{cartItems.length !== 1 ? 's' : ''} · {formatCOP(subtotal)}
             </p>
           </div>
-          <button onClick={onClose} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', padding: '7px 14px', borderRadius: 10 }}
+          <button onClick={onClose} aria-label="Volver al carrito" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.85)', backgroundColor: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', cursor: 'pointer', padding: '7px 14px', borderRadius: 10 }}
             onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)')}
             onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.12)')}>
             <ArrowLeft style={{ width: 13, height: 13 }} /> Volver
@@ -184,7 +183,7 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input type={showPassword ? 'text' : 'password'} value={loginData.password} onChange={e => setLoginData(p => ({ ...p, password: e.target.value }))} className="pl-9 pr-9 h-9 text-sm" placeholder="••••••••" />
-                      <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <button type="button" onClick={() => setShowPassword(s => !s)} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                         {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                       </button>
                     </div>
@@ -218,7 +217,7 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                       <Input type={showPassword ? 'text' : 'password'} value={loginData.password} onChange={e => setLoginData(p => ({ ...p, password: e.target.value }))} className="pl-9 pr-9 h-9 text-sm" placeholder="Mínimo 8 caracteres" />
-                      <button type="button" onClick={() => setShowPassword(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      <button type="button" onClick={() => setShowPassword(s => !s)} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                         {showPassword ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                       </button>
                     </div>
@@ -340,7 +339,7 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
                     <span style={{ fontSize: 20, fontWeight: 800, color: '#3A7D44', letterSpacing: '-0.02em' }}>{formatCOP(subtotal)}</span>
                   </div>
 
-                  <button onClick={handleConfirm} disabled={isProcessing}
+                  <button onClick={handleConfirm} disabled={isProcessing} aria-label="Confirmar pedido"
                     style={{ width: '100%', height: 50, borderRadius: 12, border: 'none', background: isProcessing ? '#D1FAE5' : 'linear-gradient(135deg, #2D6A4F, #52B788)', color: isProcessing ? '#3A7D44' : 'white', fontSize: 15, fontWeight: 700, cursor: isProcessing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: isProcessing ? 'none' : '0 4px 12px rgba(58,125,68,0.25)' }}>
                     {isProcessing
                       ? <><span style={{ width: 16, height: 16, border: '2px solid #3A7D44', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} /> Registrando...</>
@@ -461,12 +460,12 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
                 )}
               </div>
 
-              <button onClick={onOrderComplete} style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #2D6A4F, #52B788)', color: 'white', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 16px rgba(58,125,68,0.3)' }}
+              <button onClick={onOrderComplete} aria-label="Ver mis pedidos" style={{ width: '100%', height: 52, borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #2D6A4F, #52B788)', color: 'white', fontSize: 15, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, boxShadow: '0 4px 16px rgba(58,125,68,0.3)' }}
                 onMouseEnter={e => (e.currentTarget.style.opacity = '0.92')}
                 onMouseLeave={e => (e.currentTarget.style.opacity = '1')}>
                 <Package style={{ width: 18, height: 18 }} /> Ver mis pedidos
               </button>
-              <button onClick={onClose} style={{ width: '100%', height: 42, borderRadius: 12, border: '1px solid #E5E5E2', backgroundColor: 'white', color: '#737370', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
+              <button onClick={onClose} aria-label="Volver a la tienda" style={{ width: '100%', height: 42, borderRadius: 12, border: '1px solid #E5E5E2', backgroundColor: 'white', color: '#737370', fontSize: 13, fontWeight: 500, cursor: 'pointer' }}
                 onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F4F4F2')}
                 onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}>
                 Volver a la tienda

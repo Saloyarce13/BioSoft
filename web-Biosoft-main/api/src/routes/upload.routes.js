@@ -12,6 +12,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+const isCloudinaryConfigured = Boolean(
+  process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
+);
+if (!isCloudinaryConfigured) {
+  console.warn('Cloudinary env vars missing — upload endpoints will return 503 until configured.');
+}
+
 // Multer en memoria (no guarda en disco)
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -25,6 +32,9 @@ const upload = multer({
 
 // POST /api/upload/product-image
 router.post('/product-image', authenticateToken, upload.single('image'), async (req, res) => {
+  if (!isCloudinaryConfigured) {
+    return res.status(503).json({ success: false, message: 'Cloudinary no está configurado en el servidor.' });
+  }
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No se envió ninguna imagen' });
@@ -62,6 +72,9 @@ router.post('/product-image', authenticateToken, upload.single('image'), async (
 
 // GET /api/upload/test — verificar conexión con Cloudinary
 router.get('/test', authenticateToken, async (req, res) => {
+  if (!isCloudinaryConfigured) {
+    return res.status(503).json({ success: false, message: 'Cloudinary no está configurado en el servidor.' });
+  }
   try {
     const result = await cloudinary.api.ping();
     return res.status(200).json({ success: true, message: 'Cloudinary conectado', data: result });

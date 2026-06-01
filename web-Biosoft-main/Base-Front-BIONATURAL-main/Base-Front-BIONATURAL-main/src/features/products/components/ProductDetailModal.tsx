@@ -227,6 +227,7 @@ export function ProductDetailModal({ product, isOpen, onClose, isFavorite, onTog
                       <button
                         onClick={() => setQuantity(q => Math.max(1, q - 1))}
                         disabled={quantity <= 1}
+                        aria-label={`Reducir cantidad de ${product.name}`}
                         className="w-9 h-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
                       >
                         <Minus className="h-3.5 w-3.5" />
@@ -235,6 +236,7 @@ export function ProductDetailModal({ product, isOpen, onClose, isFavorite, onTog
                       <button
                         onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
                         disabled={quantity >= product.stock}
+                        aria-label={`Aumentar cantidad de ${product.name}`}
                         className="w-9 h-9 flex items-center justify-center hover:bg-muted transition-colors disabled:opacity-40"
                       >
                         <Plus className="h-3.5 w-3.5" />
