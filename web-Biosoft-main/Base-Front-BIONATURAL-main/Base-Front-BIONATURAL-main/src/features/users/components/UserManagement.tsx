@@ -591,6 +591,7 @@ export function UserManagement() {
                 <Input id="docNum" value={formData.documentNumber}
                   onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
                   placeholder="1234567890"
+                  required
                   className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''}`} />
                 {formErrors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentNumber}</p>}
               </div>
@@ -603,6 +604,7 @@ export function UserManagement() {
                 <Input id="firstName" value={formData.firstName}
                   onChange={e => { setFormData(p => ({ ...p, firstName: e.target.value })); setFormErrors(p => ({ ...p, firstName: '' })); }}
                   placeholder="Ej: Ana"
+                  required
                   className={`h-9 text-sm shadow-sm ${formErrors.firstName ? 'border-destructive' : ''}`} />
                 {formErrors.firstName && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.firstName}</p>}
               </div>
@@ -611,6 +613,7 @@ export function UserManagement() {
                 <Input id="lastName" value={formData.lastName}
                   onChange={e => { setFormData(p => ({ ...p, lastName: e.target.value })); setFormErrors(p => ({ ...p, lastName: '' })); }}
                   placeholder="Ej: García"
+                  required
                   className={`h-9 text-sm shadow-sm ${formErrors.lastName ? 'border-destructive' : ''}`} />
                 {formErrors.lastName && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.lastName}</p>}
               </div>
@@ -622,6 +625,7 @@ export function UserManagement() {
               <Input id="email" type="email" value={formData.email}
                 onChange={e => { setFormData(p => ({ ...p, email: e.target.value })); setFormErrors(p => ({ ...p, email: '' })); }}
                 placeholder="usuario@email.com"
+                required
                 className={`h-9 text-sm shadow-sm ${formErrors.email ? 'border-destructive' : ''}`} />
               {formErrors.email && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.email}</p>}
             </div>
@@ -633,6 +637,7 @@ export function UserManagement() {
                 onChange={e => { const val = e.target.value.replace(/\D/g, ''); setFormData(p => ({ ...p, phone: val })); setFormErrors(p => ({ ...p, phone: '' })); }}
                 placeholder="3001234567"
                 inputMode="numeric"
+                required
                 className={`h-9 text-sm shadow-sm ${formErrors.phone ? 'border-destructive' : ''}`} />
               {formErrors.phone && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.phone}</p>}
             </div>
@@ -680,6 +685,7 @@ export function UserManagement() {
                         <Input id="position" value={formData.position}
                           onChange={e => setFormData(p => ({ ...p, position: e.target.value }))}
                           placeholder="Ej: Vendedor, Bodeguero..."
+                          required
                           className="h-9 text-sm shadow-sm" />
                       </div>
                       {/* Fecha nacimiento + Fecha contratación */}
@@ -689,6 +695,7 @@ export function UserManagement() {
                           <Input id="birthDate" type="date" value={formData.birthDate}
                             onChange={e => { setFormData(p => ({ ...p, birthDate: e.target.value })); setFormErrors(p => ({ ...p, birthDate: '' })); }}
                             max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                            required
                             className={`h-9 text-sm shadow-sm ${formErrors.birthDate ? 'border-destructive' : ''}`} />
                           {formErrors.birthDate
                             ? <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.birthDate}</p>
@@ -698,6 +705,7 @@ export function UserManagement() {
                           <Label htmlFor="hireDate" className="text-xs font-medium">Fecha contratación <span className="text-destructive">*</span></Label>
                           <Input id="hireDate" type="date" value={formData.hireDate}
                             onChange={e => { setFormData(p => ({ ...p, hireDate: e.target.value })); setFormErrors(p => ({ ...p, hireDate: '' })); }}
+                            required
                             className={`h-9 text-sm shadow-sm ${formErrors.hireDate ? 'border-destructive' : ''}`} />
                           {formErrors.hireDate && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.hireDate}</p>}
                         </div>
@@ -708,6 +716,7 @@ export function UserManagement() {
                         <Input id="salary" type="number" min={0} value={formData.salary}
                           onChange={e => { setFormData(p => ({ ...p, salary: e.target.value })); setFormErrors(p => ({ ...p, salary: '' })); }}
                           placeholder="Ej: 2000000"
+                          required
                           className={`h-9 text-sm shadow-sm ${formErrors.salary ? 'border-destructive' : ''}`} />
                         {formErrors.salary && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.salary}</p>}
                       </div>
@@ -730,6 +739,7 @@ export function UserManagement() {
                     <Input id="pw" type={showPassword ? 'text' : 'password'} value={formData.password}
                       onChange={e => { setFormData(p => ({ ...p, password: e.target.value })); setFormErrors(p => ({ ...p, password: '' })); }}
                       placeholder="Mín. 8 caracteres"
+                      required
                       className={`h-9 text-sm shadow-sm pr-9 ${formErrors.password ? 'border-destructive' : ''}`} />
                     <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
                       onClick={() => setShowPassword(p => !p)}>
@@ -744,6 +754,7 @@ export function UserManagement() {
                     <Input id="cpw" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword}
                       onChange={e => { setFormData(p => ({ ...p, confirmPassword: e.target.value })); setFormErrors(p => ({ ...p, confirmPassword: '' })); }}
                       placeholder="Repite"
+                      required
                       className={`h-9 text-sm shadow-sm pr-9 ${formErrors.confirmPassword ? 'border-destructive' : ''}`} />
                     <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
                       onClick={() => setShowConfirmPassword(p => !p)}>

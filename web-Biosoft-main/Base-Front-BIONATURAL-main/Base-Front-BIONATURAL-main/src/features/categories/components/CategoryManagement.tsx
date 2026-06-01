@@ -57,14 +57,14 @@ function CategoryFormModal({ open, onClose, title, name, setName, desc, setDesc,
               Nombre <span className="text-destructive">*</span>
             </Label>
             <Input value={name} onChange={e => setName(e.target.value)}
-              placeholder="Ej: Tés e Infusiones" className="h-9 text-sm" autoComplete="off" />
+              placeholder="Ej: Tés e Infusiones" required className="h-9 text-sm" autoComplete="off" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs font-medium">
               Descripción <span className="text-destructive">*</span>
             </Label>
             <Textarea value={desc} onChange={e => setDesc(e.target.value)}
-              placeholder="Describe brevemente esta categoría..."
+              placeholder="Describe brevemente esta categoría..." required
               rows={3} className="text-sm resize-none" />
           </div>
         </div>

@@ -3,12 +3,15 @@ import React, { useState } from 'react'
 export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElement> & { category?: string }) {
   const [didError, setDidError] = useState(false)
   const { src, alt, style, className, category, ...rest } = props
+  const resolvedAlt = alt?.trim() || category?.trim() || 'Imagen del producto'
 
   if (!src || didError) {
     return (
       <div
         className={`inline-flex items-center justify-center bg-gradient-to-br from-emerald-50 to-green-100 ${className ?? ''}`}
         style={style}
+        role="img"
+        aria-label={resolvedAlt}
       >
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, opacity: 0.7 }}>
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#3A7D44" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -28,7 +31,7 @@ export function ImageWithFallback(props: React.ImgHTMLAttributes<HTMLImageElemen
   return (
     <img
       src={src}
-      alt={alt}
+      alt={resolvedAlt}
       className={className}
       style={style}
       {...rest}

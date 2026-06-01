@@ -24,6 +24,11 @@ interface LandingPageProps {
   onLoginOpen?: () => void;
 }
 
+const LANDING_CARD_WIDTH = 240;
+const LANDING_CARD_HEIGHT = 380;
+const LANDING_CARD_IMAGE_HEIGHT = 176;
+const LANDING_CARD_TITLE_HEIGHT = 42;
+
 // ── Hero con carrusel automático de productos reales ─────────────────────────
 function HeroCarousel({ products, onLoginOpen }: { products: { id: string | number; image?: string; name: string }[]; onLoginOpen?: () => void }) {
   const [current, setCurrent] = React.useState(0);
@@ -79,7 +84,7 @@ function HeroCarousel({ products, onLoginOpen }: { products: { id: string | numb
       {images.length > 1 && (
         <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 10 }}>
           {images.map((_, i) => (
-            <button key={i} onClick={() => setCurrent(i)}
+            <button key={i} onClick={() => setCurrent(i)} aria-label={`Ver imagen destacada ${i + 1} de ${images.length}`}
               style={{ width: i === current ? 24 : 8, height: 8, borderRadius: 99, backgroundColor: i === current ? 'white' : 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
           ))}
         </div>
@@ -187,7 +192,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
               { icon: Award,  bg: '#FEF3C7', color: '#D97706', title: 'Calidad Certificada', desc: 'Rigurosos controles de calidad en cada lote. Productos seleccionados por expertos.' },
               { icon: Shield, bg: '#E0F2FE', color: '#0284C7', title: 'Compra Segura',       desc: 'Pago al recoger en tienda. Sin riesgos, sin sorpresas, sin complicaciones.' },
             ].map(({ icon: Icon, bg, color, title, desc }) => (
-              <div key={title} style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: '20px 24px', borderRadius: 16, border: '1px solid #E5E5E2', backgroundColor: 'white', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+              <div key={title} style={{ display: 'flex', alignItems: 'flex-start', gap: 16, padding: '20px 24px', borderRadius: 16, border: '1px solid #E5E5E2', backgroundColor: 'white', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', height: '100%', minHeight: 118 }}>
                 <div style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Icon style={{ width: 22, height: 22, color }} />
                 </div>
@@ -216,11 +221,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
               {apiProducts.slice(0, 8).map(product => (
                 <div key={product.id}
                   onClick={handleBuy}
-                  style={{ minWidth: 190, maxWidth: 190, borderRadius: 18, border: '1px solid #E5E5E2', backgroundColor: 'white', overflow: 'hidden', cursor: 'pointer', flexShrink: 0, transition: 'transform 0.18s, box-shadow 0.18s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
+                  style={{ width: LANDING_CARD_WIDTH, minWidth: LANDING_CARD_WIDTH, maxWidth: LANDING_CARD_WIDTH, height: LANDING_CARD_HEIGHT, borderRadius: 18, border: '1px solid #E5E5E2', backgroundColor: 'white', overflow: 'hidden', cursor: 'pointer', flexShrink: 0, transition: 'transform 0.18s, box-shadow 0.18s', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column' }}
                   onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(-4px)'; el.style.boxShadow = '0 12px 32px rgba(0,0,0,0.12)'; }}
                   onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.transform = 'translateY(0)'; el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'; }}>
                   {/* Imagen */}
-                  <div style={{ position: 'relative', height: 160, backgroundColor: '#F0F4EF', overflow: 'hidden' }}>
+                  <div style={{ position: 'relative', height: LANDING_CARD_IMAGE_HEIGHT, backgroundColor: '#F0F4EF', overflow: 'hidden', flexShrink: 0 }}>
                     {product.image ? (
                       <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.3s' }}
                         onMouseEnter={e => { (e.target as HTMLImageElement).style.transform = 'scale(1.06)'; }}
@@ -242,10 +247,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
                     )}
                   </div>
                   {/* Info */}
-                  <div style={{ padding: '12px 14px 14px' }}>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: '#1C1C1A', margin: '0 0 2px', lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as any}>{product.name}</p>
-                    <p style={{ fontSize: 10, color: '#737370', margin: '0 0 10px' }}>{product.category}</p>
-                    <button onClick={handleBuy} style={{ width: '100%', height: 34, borderRadius: 10, border: 'none', backgroundColor: '#3A7D44', color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                  <div style={{ padding: '12px 14px 14px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ height: LANDING_CARD_TITLE_HEIGHT, marginBottom: 4, overflow: 'hidden' }}>
+                      <p style={{ fontSize: 12, fontWeight: 700, color: '#1C1C1A', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' } as any}>{product.name}</p>
+                    </div>
+                    <p style={{ fontSize: 10, color: '#737370', margin: '0 0 10px', minHeight: 12 }}>{product.category}</p>
+                    <button onClick={handleBuy} aria-label={`Agregar ${product.name} al carrito`} style={{ width: '100%', height: 34, borderRadius: 10, border: 'none', backgroundColor: '#3A7D44', color: 'white', fontSize: 11, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 'auto' }}>
                       <ShoppingCart style={{ width: 11, height: 11 }} /> Agregar
                     </button>
                   </div>
@@ -305,6 +312,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
               } as any}>
                 <button
                   onClick={() => setCategoryFilter('all')}
+                  aria-pressed={categoryFilter === 'all'}
+                  aria-label="Filtrar por todos los productos"
                   style={{
                     padding: '10px 24px',
                     borderRadius: 12,
@@ -325,6 +334,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
                   <button
                     key={cat}
                     onClick={() => setCategoryFilter(cat)}
+                    aria-pressed={categoryFilter === cat}
+                    aria-label={`Filtrar por ${cat}`}
                     style={{
                       padding: '10px 24px',
                       borderRadius: 12,
@@ -348,7 +359,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
 
           {/* Grid */}
           {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${LANDING_CARD_WIDTH}px, ${LANDING_CARD_WIDTH}px))`, gap: 20, justifyContent: 'center' }}>
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} style={{ borderRadius: 16, border: '1px solid #E5E5E2', backgroundColor: 'white', overflow: 'hidden' }}>
                   <div style={{ aspectRatio: '1', backgroundColor: '#F4F4F2', animation: 'pulse 1.5s infinite' }} />
@@ -373,17 +384,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
               )}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${LANDING_CARD_WIDTH}px, ${LANDING_CARD_WIDTH}px))`, gap: 20, justifyContent: 'center' }}>
               {filteredProducts.map(product => (
                 <div
                   key={product.id}
                   onClick={handleBuy}
-                  style={{ borderRadius: 16, border: '1px solid #E5E5E2', backgroundColor: 'white', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.18s ease, box-shadow 0.18s ease', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}
+                  style={{ width: LANDING_CARD_WIDTH, minWidth: LANDING_CARD_WIDTH, maxWidth: LANDING_CARD_WIDTH, height: LANDING_CARD_HEIGHT, borderRadius: 16, border: '1px solid #E5E5E2', backgroundColor: 'white', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.18s ease, box-shadow 0.18s ease', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'; }}
                 >
                   {/* Imagen */}
-                  <div style={{ position: 'relative', aspectRatio: '1', overflow: 'hidden', backgroundColor: '#F4F4F2' }}>
+                  <div style={{ position: 'relative', height: LANDING_CARD_IMAGE_HEIGHT, overflow: 'hidden', backgroundColor: '#F4F4F2', flexShrink: 0 }}>
                     {product.image ? (
                       <img
                         src={product.image}
@@ -421,24 +432,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
                   </div>
 
                   {/* Info */}
-                  <div style={{ padding: '14px 14px 16px' }}>
-                    <p style={{ 
-                      fontSize: 13, 
-                      fontWeight: 600, 
-                      color: '#1C1C1A', 
-                      lineHeight: 1.4, 
-                      marginBottom: 3, 
-                      display: '-webkit-box', 
-                      WebkitLineClamp: 2, 
-                      WebkitBoxOrient: 'vertical', 
-                      overflow: 'hidden' 
-                    } as any}>
-                      {product.name}
-                    </p>
-                    <p style={{ fontSize: 11, color: '#737370', marginBottom: 12 }}>{product.category}</p>
+                  <div style={{ padding: '14px 14px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ height: LANDING_CARD_TITLE_HEIGHT, marginBottom: 4, overflow: 'hidden' }}>
+                      <p style={{ 
+                        fontSize: 13, 
+                        fontWeight: 600, 
+                        color: '#1C1C1A', 
+                        lineHeight: 1.4, 
+                        margin: 0, 
+                        display: '-webkit-box', 
+                        WebkitLineClamp: 2, 
+                        WebkitBoxOrient: 'vertical', 
+                        overflow: 'hidden' 
+                      } as any}>
+                        {product.name}
+                      </p>
+                    </div>
+                    <p style={{ fontSize: 11, color: '#737370', marginBottom: 12, minHeight: 12 }}>{product.category}</p>
                     <button
                       onClick={handleBuy}
-                      style={{ width: '100%', height: 36, borderRadius: 9, backgroundColor: '#3A7D44', color: 'white', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                      style={{ width: '100%', height: 36, borderRadius: 9, backgroundColor: '#3A7D44', color: 'white', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 'auto' }}
                     >
                       <ShoppingCart style={{ width: 13, height: 13 }} />
                       Agregar al carrito

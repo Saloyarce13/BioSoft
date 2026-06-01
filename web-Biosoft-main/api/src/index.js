@@ -1,6 +1,7 @@
 // src/index.js
 const express = require('express');
 const cors    = require('cors');
+const cookieParser = require('cookie-parser');
 const helmet  = require('helmet');
 const rateLimit = require('express-rate-limit');
 const winston = require('winston');
@@ -72,7 +73,7 @@ const authLimiter = rateLimit({
 
 // ─── CORS Configuration ────────────────────────────────────────────────────────
 const corsOptions = {
-  origin: '*',
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -84,6 +85,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // Manejar preflight OPTIONS explícitamente
 app.options('*', cors(corsOptions));
+app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 

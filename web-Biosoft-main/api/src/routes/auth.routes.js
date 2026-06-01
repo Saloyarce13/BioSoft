@@ -8,6 +8,7 @@ const { authenticateToken } = require('../middleware/auth');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 router.post('/demo-login', authController.demoLogin);
+router.post('/logout', authController.logout);
 
 // Recuperación de contraseña
 router.post('/password-reset/request', authController.passwordResetRequest);

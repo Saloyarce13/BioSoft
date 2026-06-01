@@ -6,20 +6,15 @@ export type ApiResponse<T> = {
   data: T;
 };
 
-export async function apiFetch<T>(path: string, options: RequestInit = {}) {
+export async function apiFetch<T>(path: string, options: RequestInit & { ignoreAuthError?: boolean } = {}) {
   const url = `${API_BASE_URL.replace(/\/$/, '')}${path}`;
-
-  const token = localStorage.getItem('authToken');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string> || {}),
   };
 
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
-  }
-
   const response = await fetch(url, {
+    credentials: 'include',
     headers,
     ...options,
   });
@@ -28,8 +23,9 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}) {
 
   // Si el servidor responde 401 (token expirado/inválido), limpiar sesión y redirigir al login
   if (response.status === 401) {
-    localStorage.removeItem('authToken');
-    window.dispatchEvent(new CustomEvent('auth:expired'));
+    if (!options.ignoreAuthError) {
+      window.dispatchEvent(new CustomEvent('auth:expired'));
+    }
     throw new Error(json?.message || 'Sesión expirada. Por favor inicia sesión nuevamente.');
   }
 
@@ -45,7 +41,6 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}) {
 
 export const authLogin = async (email: string, password: string) => {
   return apiFetch<{
-    token: string;
     user: { id: string; name: string; email: string; role: string; permissions: string[] };
   }>('/auth/login', {
     method: 'POST',
@@ -464,13 +459,12 @@ export const getTransactions = async (params?: { type?: string; limit?: number }
 
 // Upload API (Cloudinary)
 export const uploadProductImage = async (file: File): Promise<string> => {
-  const token = localStorage.getItem('authToken');
   const formData = new FormData();
   formData.append('image', file);
 
   const res = await fetch(`${API_BASE_URL.replace(/\/$/, '')}/upload/product-image`, {
     method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: 'include',
     body: formData,
   });
 

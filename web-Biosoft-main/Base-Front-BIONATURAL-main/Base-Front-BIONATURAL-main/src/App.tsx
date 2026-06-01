@@ -49,11 +49,109 @@ import { Input } from './components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from './components/ui/avatar';
 import { usePersistedState, STORAGE_KEYS } from './shared/utils/storage';
+import { apiFetch } from './lib/api';
 
 // Mapa de nombres de iconos a componentes Lucide — fuera del componente para evitar recreación
 const ICON_MAP: Record<string, React.ElementType> = {
   Home, BarChart3, Users, Briefcase, Shield, Building2, Package, ShoppingCart, Truck, FileText, DollarSign,
 };
+
+const ADMIN_VIEW_PATHS: Record<string, string> = {
+  dashboard: '/admin',
+  home: '/admin',
+  reports: '/admin/reportes',
+  users: '/admin/usuarios',
+  employees: '/admin/empleados',
+  roles: '/admin/roles',
+  providers: '/admin/proveedores',
+  products: '/admin/productos',
+  categories: '/admin/categorias',
+  purchases: '/admin/compras',
+  clients: '/admin/clientes',
+  orders: '/admin/pedidos',
+  sales: '/admin/ventas',
+  landing: '/',
+  login: '/login',
+  register: '/register',
+};
+
+const ADMIN_VIEW_IDS = new Set([
+  'dashboard',
+  'home',
+  'reports',
+  'users',
+  'employees',
+  'roles',
+  'providers',
+  'products',
+  'categories',
+  'purchases',
+  'clients',
+  'orders',
+  'sales',
+]);
+
+function normalizePathname(pathname: string) {
+  const normalized = pathname.replace(/\/+$/, '');
+  return normalized || '/';
+}
+
+function getViewFromPath(pathname: string) {
+  const path = normalizePathname(pathname);
+  switch (path) {
+    case '/':
+      return 'landing';
+    case '/login':
+      return 'login';
+    case '/register':
+      return 'register';
+    case '/admin':
+    case '/admin/dashboard':
+    case '/admin/home':
+      return 'dashboard';
+    case '/admin/reportes':
+      return 'reports';
+    case '/admin/usuarios':
+    case '/admin/users':
+      return 'users';
+    case '/admin/empleados':
+    case '/admin/employees':
+      return 'employees';
+    case '/admin/roles':
+      return 'roles';
+    case '/admin/proveedores':
+    case '/admin/providers':
+      return 'providers';
+    case '/admin/productos':
+    case '/admin/products':
+      return 'products';
+    case '/admin/categorias':
+    case '/admin/categories':
+      return 'categories';
+    case '/admin/compras':
+    case '/admin/purchases':
+      return 'purchases';
+    case '/admin/clientes':
+    case '/admin/clients':
+      return 'clients';
+    case '/admin/pedidos':
+    case '/admin/orders':
+      return 'orders';
+    case '/admin/ventas':
+    case '/admin/sales':
+      return 'sales';
+    default:
+      return null;
+  }
+}
+
+function getPathForView(view: string) {
+  return ADMIN_VIEW_PATHS[view] || null;
+}
+
+function isAdminView(view: string | null) {
+  return view ? ADMIN_VIEW_IDS.has(view) : false;
+}
 
 interface UnifiedProduct {
   id: string | number;
@@ -82,7 +180,10 @@ interface UnifiedProduct {
 type ClientView = 'store' | 'profile' | 'notifications' | 'payments' | 'checkout' | 'orders' | 'favorites';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('landing');
+  const [currentView, setCurrentView] = useState(() => {
+    if (typeof window === 'undefined') return 'landing';
+    return getViewFromPath(window.location.pathname) || 'landing';
+  });
   const [landingKey, setLandingKey] = useState(0);
   const [user, setUser] = useState<{ name: string; email: string; role: string; permissions: string[] } | null>(null);
   const { cartItems, addToCart, updateCartQuantity, removeFromCart, clearCart, cartItemsCount } = useCart();
@@ -105,12 +206,24 @@ export default function App() {
     const normalizedRole = normalizeRole(userData.role);
     const normalized = { ...userData, role: normalizedRole, permissions: userData.permissions || [] };
     setUser(normalized);
-    if (normalizedRole !== 'Cliente') setCurrentView('dashboard');
+    if (normalizedRole !== 'Cliente') {
+      const pathView = typeof window !== 'undefined' ? getViewFromPath(window.location.pathname) : null;
+      setCurrentView(isAdminView(pathView) ? pathView! : 'dashboard');
+    } else if (currentView !== 'checkout') {
+      setCurrentView('store');
+    }
     toast.success(`¡Bienvenido ${userData.name}!`);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
+  const handleLogout = async () => {
+    try {
+      await apiFetch('/auth/logout', {
+        method: 'POST',
+        ignoreAuthError: true,
+      });
+    } catch {
+      // Si el token ya expiró, limpiamos estado local igualmente.
+    }
     setUser(null);
     setCurrentView('landing');
     setLandingKey(k => k + 1);
@@ -154,8 +267,29 @@ export default function App() {
   };
 
   React.useEffect(() => {
-    if (user && !hasAccessToView(currentView)) setCurrentView('dashboard');
+    if (!user) return;
+    if (user.role === 'Cliente') return;
+    if (isAdminView(currentView) && !hasAccessToView(currentView)) setCurrentView('dashboard');
   }, [user, currentView]);
+
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const nextView = getViewFromPath(window.location.pathname);
+      if (nextView) setCurrentView(nextView);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  React.useEffect(() => {
+    const nextPath = getPathForView(currentView);
+    if (!nextPath) return;
+    const currentPath = normalizePathname(window.location.pathname);
+    if (currentPath !== nextPath) {
+      window.history.pushState({}, '', nextPath);
+    }
+  }, [currentView]);
 
   React.useEffect(() => {
     const handleAuthExpired = () => {
@@ -168,23 +302,35 @@ export default function App() {
   }, []);
 
   React.useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    if (!token || user) return;
-    import('./lib/api').then(({ apiFetch }) => {
-      apiFetch<any>('/auth/me')
-        .then(res => {
-          if (res.success) {
-            const d = res.data;
-            const roleName = typeof d.role === 'object' ? d.role?.name ?? '' : d.role ?? '';
-            const rolePerms: string[] = typeof d.role === 'object'
-              ? (d.role?.permissions ?? []).map((p: any) => p?.permission?.name ?? p?.name ?? p)
-              : (d.permissions ?? []);
-            const normalizedRole = normalizeRole(roleName);
-            setUser({ name: d.name, email: d.email, role: normalizedRole, permissions: rolePerms });
-            setCurrentView('dashboard');
+    const params = new URLSearchParams(window.location.search);
+    const redirectTarget = params.get('redirect');
+    if (!redirectTarget || !redirectTarget.startsWith('/')) return;
+
+    window.history.replaceState({}, '', redirectTarget);
+    const nextView = getViewFromPath(redirectTarget);
+    if (nextView) setCurrentView(nextView);
+  }, []);
+
+  React.useEffect(() => {
+    if (user) return;
+    apiFetch<any>('/auth/me', { ignoreAuthError: true })
+      .then(res => {
+        if (res.success) {
+          const d = res.data;
+          const roleName = typeof d.role === 'object' ? d.role?.name ?? '' : d.role ?? '';
+          const rolePerms: string[] = typeof d.role === 'object'
+            ? (d.role?.permissions ?? []).map((p: any) => p?.permission?.name ?? p?.name ?? p)
+            : (d.permissions ?? []);
+          const normalizedRole = normalizeRole(roleName);
+          setUser({ name: d.name, email: d.email, role: normalizedRole, permissions: rolePerms });
+          if (normalizedRole === 'Cliente') {
+            if (currentView !== 'checkout') setCurrentView('store');
+          } else {
+            const pathView = getViewFromPath(window.location.pathname);
+            setCurrentView(isAdminView(pathView) ? pathView! : 'dashboard');
           }
-        }).catch(() => {});
-    });
+        }
+      }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -238,6 +384,7 @@ export default function App() {
                   {/* Notificaciones */}
                   <button
                     onClick={() => setClientView('notifications')}
+                    aria-label="Abrir notificaciones"
                     style={{ position: 'relative', width: 40, height: 40, borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F4F4F2')}
                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}
@@ -248,6 +395,7 @@ export default function App() {
                   {/* Favoritos */}
                   <button
                     onClick={() => setClientView('favorites')}
+                    aria-label="Abrir favoritos"
                     style={{ position: 'relative', width: 40, height: 40, borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F4F4F2')}
                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}
@@ -258,11 +406,13 @@ export default function App() {
                   {/* Carrito */}
                   <button
                     onClick={() => setIsCartOpen(true)}
-                    style={{ position: 'relative', width: 40, height: 40, borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.15s' }}
+                    aria-label={`Abrir carrito con ${cartItemsCount} producto${cartItemsCount === 1 ? '' : 's'}`}
+                    style={{ position: 'relative', minWidth: 112, height: 40, borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '0 14px', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F4F4F2')}
                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}
                   >
                     <ShoppingCart style={{ width: 17, height: 17, color: '#737370' }} />
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1A' }}>Carrito</span>
                     {cartItemsCount > 0 && (
                       <span style={{ position: 'absolute', top: -4, right: -4, width: 18, height: 18, borderRadius: '50%', backgroundColor: '#3A7D44', color: 'white', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {cartItemsCount > 9 ? '9+' : cartItemsCount}
@@ -276,6 +426,7 @@ export default function App() {
                   {/* Usuario */}
                   <button
                     onClick={() => setIsUserSidebarOpen(true)}
+                    aria-label={`Abrir menú de usuario de ${user.name}`}
                     style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px', borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', cursor: 'pointer', transition: 'background 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F4F4F2')}
                     onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}
