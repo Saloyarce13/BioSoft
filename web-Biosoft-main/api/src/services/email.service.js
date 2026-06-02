@@ -1,53 +1,66 @@
 // src/services/email.service.js
 const nodemailer = require('nodemailer');
 
-// ─── Transporter ──────────────────────────────────────────────────────────────
-const getTransporter = () => {
+const getEmailConfig = () => {
   const host = (process.env.EMAIL_HOST || process.env.SMTP_HOST || '').trim();
   const port = Number(process.env.EMAIL_PORT || process.env.SMTP_PORT || 587);
   const user = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
   const pass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
+  const from = (process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER || process.env.SMTP_USER || 'Bionatural <no-reply@bionatural.local>').trim();
+  const replyTo = (process.env.EMAIL_REPLY_TO || process.env.SMTP_REPLY_TO || '').trim() || undefined;
 
-  if (!host || !user || !pass) {
-    return {
-      sendMail: async ({ to, subject }) => {
-        console.warn(`[EMAIL SIMULADO] Sin SMTP. Para: ${to} | Asunto: ${subject}`);
-      },
-    };
+  return { host, port, user, pass, from, replyTo };
+};
+
+let transporter;
+const getTransporter = () => {
+  if (transporter) {
+    return transporter;
   }
 
-  return nodemailer.createTransport({
+  const { host, port, user, pass } = getEmailConfig();
+
+  if (!host || !user || !pass) {
+    transporter = {
+      sendMail: async ({ to, subject }) => {
+        console.warn(`[EMAIL SIMULADO] Falta configuración SMTP. Para: ${to} | Asunto: ${subject}`);
+        return { accepted: [to], messageId: 'simulated-email' };
+      },
+    };
+    return transporter;
+  }
+
+  transporter = nodemailer.createTransport({
     host,
     port,
     secure: port === 465,
     auth: { user, pass },
     tls: { rejectUnauthorized: false },
   });
+
+  return transporter;
 };
 
-const FROM = () =>
-  (process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER || 'no-reply@bionatural.local').trim();
-const REPLY_TO = () =>
-  (process.env.EMAIL_REPLY_TO || process.env.SMTP_REPLY_TO || '').trim() || undefined;
+const getFromAddress = () => getEmailConfig().from;
+const getReplyTo = () => getEmailConfig().replyTo;
 
-// ─── Helper interno ────────────────────────────────────────────────────────────
 const send = async ({ to, subject, html, text }) => {
   const transporter = getTransporter();
   try {
-    await transporter.sendMail({
-      from: FROM(),
-      replyTo: REPLY_TO(),
+    return await transporter.sendMail({
+      from: getFromAddress(),
+      replyTo: getReplyTo(),
       to,
       subject,
       html,
       text,
     });
-  } catch (err) {
-    console.error('[EMAIL ERROR]', err.message);
+  } catch (error) {
+    console.error('[EMAIL ERROR]', error.message || error);
+    throw error;
   }
 };
 
-// ─── 1. Código de verificación / recuperación ─────────────────────────────────
 const sendEmailWithCode = async ({ to, code, subject, text }) => {
   const html = `
 <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/></head>
@@ -74,10 +87,9 @@ const sendEmailWithCode = async ({ to, code, subject, text }) => {
   </table>
 </body></html>`;
 
-  await send({ to, subject, html, text: `Tu código es: ${code}` });
+  return send({ to, subject, html, text: `Tu código es: ${code}` });
 };
 
-// ─── 2. Bienvenida ─────────────────────────────────────────────────────────────
 const sendWelcomeEmail = async ({ to, name }) => {
   const subject = '¡Bienvenido a Bionatural! 🌿';
   const html = `
@@ -111,13 +123,11 @@ const sendWelcomeEmail = async ({ to, name }) => {
   </table>
 </body></html>`;
 
-  await send({ to, subject, html, text: `Hola ${name}, bienvenido a Bionatural. Tu cuenta ha sido creada exitosamente.` });
+  return send({ to, subject, html, text: `Hola ${name}, bienvenido a Bionatural. Tu cuenta ha sido creada exitosamente.` });
 };
 
-// ─── 3. Pedido cancelado (manual) ─────────────────────────────────────────────
 const sendOrderCancelledEmail = async ({ to, clientName, orderId, items, total }) => {
   const subject = `Tu pedido #${orderId} ha sido cancelado — Bionatural`;
-
   const itemsHtml = items.map(i => `
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;">${i.name}</td>
@@ -161,19 +171,16 @@ const sendOrderCancelledEmail = async ({ to, clientName, orderId, items, total }
   </table>
 </body></html>`;
 
-  await send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} ha sido cancelado.` });
+  return send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} ha sido cancelado.` });
 };
 
-// ─── 4. Pedido cancelado por stock insuficiente ────────────────────────────────
 const sendStockCancelledEmail = async ({ to, clientName, orderId, items, total, stockIssues }) => {
   const subject = `Tu pedido #${orderId} fue cancelado por falta de stock — Bionatural`;
-
   const issuesHtml = stockIssues.map(i => `
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #fee2e2;color:#374151;font-size:13px;">${i.productName}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #fee2e2;color:#dc2626;font-size:13px;text-align:center;">Pedido: ${i.requested} · Disponible: ${i.available}</td>
     </tr>`).join('');
-
   const itemsHtml = items.map(i => `
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:13px;">${i.name}</td>
@@ -223,13 +230,11 @@ const sendStockCancelledEmail = async ({ to, clientName, orderId, items, total, 
   </table>
 </body></html>`;
 
-  await send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} fue cancelado por falta de stock.` });
+  return send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} fue cancelado por falta de stock.` });
 };
 
-// ─── 5. Pedido listo para recoger ─────────────────────────────────────────────
 const sendOrderReadyEmail = async ({ to, clientName, orderId, items, total, expiresAt }) => {
   const subject = `¡Tu pedido #${orderId} está listo para recoger! 🌿 — Bionatural`;
-
   const itemsHtml = items.map(i => `
     <tr>
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;">${i.name}</td>
@@ -295,10 +300,9 @@ const sendOrderReadyEmail = async ({ to, clientName, orderId, items, total, expi
   </table>
 </body></html>`;
 
-  await send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} está listo. Tienes hasta el ${expiresFormatted} para recogerlo.` });
+  return send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} está listo. Tienes hasta el ${expiresFormatted} para recogerlo.` });
 };
 
-// ─── Exports ───────────────────────────────────────────────────────────────────
 module.exports = {
   sendEmailWithCode,
   sendWelcomeEmail,
