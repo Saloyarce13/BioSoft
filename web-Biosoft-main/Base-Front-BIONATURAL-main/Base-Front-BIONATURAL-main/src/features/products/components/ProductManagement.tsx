@@ -649,7 +649,7 @@ export function ProductManagement({
               <Label htmlFor="name" className="text-xs font-medium">Nombre del Producto <span className="text-destructive">*</span></Label>
               <Input id="name" value={formData.name}
                 onChange={e => setFormData({...formData, name: e.target.value})}
-                placeholder="Ej: Té Verde Orgánico Premium" className="h-9 text-sm shadow-sm" />
+                placeholder="Ej: Té Verde Orgánico Premium" required className="h-9 text-sm shadow-sm" />
             </div>
 
             {/* Descripción */}
@@ -657,7 +657,7 @@ export function ProductManagement({
               <Label htmlFor="description" className="text-xs font-medium">Descripción</Label>
               <Textarea id="description" value={formData.description}
                 onChange={e => setFormData({...formData, description: e.target.value})}
-                placeholder="Descripción del producto..." rows={2}
+                placeholder="Descripción del producto..." rows={2} required
                 className="text-sm shadow-sm resize-none" />
             </div>
 
@@ -711,10 +711,10 @@ export function ProductManagement({
             {/* Precio + Costo */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <Label htmlFor="price" className="text-xs font-medium">Precio de Venta <span className="text-destructive">*</span></Label>
-                <Input id="price" type="number" step="0.01" min="0" value={formData.price}
-                  onChange={e => setFormData({...formData, price: e.target.value})}
-                  placeholder="0.00" className="h-9 text-sm shadow-sm" />
+              <Label htmlFor="price" className="text-xs font-medium">Precio de Venta <span className="text-destructive">*</span></Label>
+              <Input id="price" type="number" step="0.01" min="0" value={formData.price}
+                onChange={e => setFormData({...formData, price: e.target.value})}
+                placeholder="0.00" required className="h-9 text-sm shadow-sm" />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="cost" className="text-xs font-medium">Precio de Costo</Label>
@@ -1465,5 +1465,4 @@ export function ProductManagement({
     </div>
   );
 }
-
 

@@ -66,7 +66,7 @@ function HeroCarousel({ products, userName }: { products: any[]; userName?: stri
       {images.length > 1 && (
         <div style={{ position: 'absolute', bottom: 20, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 6, zIndex: 10 }}>
           {images.map((_, i) => (
-            <button key={i} onClick={() => setCurrent(i)}
+            <button key={i} onClick={() => setCurrent(i)} aria-label={`Ver imagen destacada ${i + 1} de ${images.length}`}
               style={{ width: i === current ? 24 : 8, height: 8, borderRadius: 99, backgroundColor: i === current ? 'white' : 'rgba(255,255,255,0.4)', border: 'none', cursor: 'pointer', transition: 'all 0.3s', padding: 0 }} />
           ))}
         </div>
@@ -160,6 +160,7 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
                         <span style={{ fontSize: 13, fontWeight: 800, color: 'white' }}>{formatCOP(product.price)}</span>
                       </div>
                       <button onClick={e => { e.stopPropagation(); toggleFavorite(product); }}
+                        aria-label={`${fav ? 'Quitar de favoritos' : 'Agregar a favoritos'} ${product.name}`}
                         style={{ position: 'absolute', top: 8, right: 8, width: 30, height: 30, borderRadius: '50%', backgroundColor: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                         <Heart className={`w-4 h-4 ${fav ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
                       </button>
@@ -172,6 +173,7 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
                         <p style={{ fontSize: 11, color: '#3A7D44', fontWeight: 600, margin: 0 }}>{product.category}</p>
                       </div>
                       <button onClick={e => { e.stopPropagation(); addToCart(product as any); toast.success('Agregado'); }}
+                        aria-label={`Agregar ${product.name} al carrito`}
                         style={{ width: '100%', height: 38, borderRadius: 10, border: 'none', backgroundColor: '#3A7D44', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 'auto' }}>
                         <ShoppingCart style={{ width: 13, height: 13 }} /> Agregar
                       </button>
@@ -229,6 +231,8 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
               } as any}>
                 <button
                   onClick={() => setCategoryFilter('all')}
+                  aria-pressed={categoryFilter === 'all'}
+                  aria-label="Filtrar por todos los productos"
                   style={{
                     padding: '10px 24px',
                     borderRadius: 12,
@@ -249,6 +253,8 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
                   <button
                     key={cat}
                     onClick={() => setCategoryFilter(cat)}
+                    aria-pressed={categoryFilter === cat}
+                    aria-label={`Filtrar por ${cat}`}
                     style={{
                       padding: '10px 24px',
                       borderRadius: 12,
@@ -287,6 +293,7 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
                       </div>
                     )}
                     <button onClick={e => { e.stopPropagation(); toggleFavorite(product); }}
+                      aria-label={`${fav ? 'Quitar de favoritos' : 'Agregar a favoritos'} ${product.name}`}
                       style={{ position: 'absolute', top: 10, right: 10, width: 32, height: 32, borderRadius: '50%', backgroundColor: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', border: 'none', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                       <Heart className={`w-4.5 h-4.5 ${fav ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
                     </button>
@@ -302,6 +309,7 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
                       <p style={{ fontSize: 11, color: '#737370', margin: 0 }}>{product.category}</p>
                     </div>
                     <button onClick={e => { e.stopPropagation(); addToCart(product as any); toast.success('Producto agregado'); }}
+                      aria-label={`Agregar ${product.name} al carrito`}
                       style={{ width: '100%', height: 38, borderRadius: 9, backgroundColor: '#3A7D44', color: 'white', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 'auto' }}>
                       <ShoppingCart style={{ width: 13, height: 13 }} /> Agregar
                     </button>

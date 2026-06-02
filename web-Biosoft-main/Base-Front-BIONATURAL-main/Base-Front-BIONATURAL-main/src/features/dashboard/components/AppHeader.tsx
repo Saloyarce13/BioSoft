@@ -21,7 +21,7 @@ function getInitials(name: string) {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-export function AppHeader({ user, onUserSidebarOpen }: AppHeaderProps) {
+export function AppHeader({ user, onLogout, onUserSidebarOpen }: AppHeaderProps) {
   const roleStyle = ROLE_STYLES[user.role] || { bg: '#F4F4F2', color: '#737370', border: '#E5E5E2' };
 
   return (
@@ -52,7 +52,17 @@ export function AppHeader({ user, onUserSidebarOpen }: AppHeaderProps) {
         {/* Derecha: usuario */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button
+            onClick={onLogout}
+            aria-label="Cerrar sesión"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 38, padding: '0 14px', borderRadius: 10, border: '1px solid #FECACA', backgroundColor: '#FEF2F2', color: '#DC2626', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#FEE2E2')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#FEF2F2')}
+          >
+            <span>Cerrar sesión</span>
+          </button>
+          <button
             onClick={onUserSidebarOpen}
+            aria-label={`Abrir menú de usuario de ${user.name}`}
             style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 12px', borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', cursor: 'pointer', transition: 'background 0.15s' }}
             onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F4F4F2')}
             onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}

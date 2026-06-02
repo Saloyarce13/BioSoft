@@ -85,8 +85,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
     setLoginError('');
     try {
       const response = await authLogin(email, password);
-      const { token, user } = response.data;
-      localStorage.setItem('authToken', token);
+      const { user } = response.data;
       setLoginAttemptsLeft(null);
       setLoginBlockedUntil(null);
       // user.role puede ser objeto {id, name, permissions} o string
@@ -164,8 +163,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
       setTimeout(async () => {
         try {
           const loginRes = await authLogin(registerForm.email.trim(), registerForm.password);
-          const { token, user } = loginRes.data;
-          localStorage.setItem('authToken', token);
+          const { user } = loginRes.data;
           const roleName = typeof user.role === 'object' ? (user.role as any)?.name ?? '' : user.role ?? '';
           const rolePerms: string[] = typeof user.role === 'object'
             ? ((user.role as any)?.permissions ?? []).map((p: any) => p?.permission?.name ?? p?.name ?? p)

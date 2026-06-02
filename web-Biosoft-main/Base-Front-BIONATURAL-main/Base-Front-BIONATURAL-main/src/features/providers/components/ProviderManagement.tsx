@@ -1007,7 +1007,7 @@ export function ProviderManagement() {
                 <Label htmlFor="taxId" className="text-xs font-medium">
                   {formData.documentType === 'NIT' ? 'NIT (sin dígito)' : docLabel} <span className="text-destructive">*</span>
                 </Label>
-                <Input id="taxId" value={formData.taxId} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, docMaxLen); setFormData(prev => ({ ...prev, taxId: val })); }} placeholder={docPlaceholder} className="h-9 text-sm shadow-sm" maxLength={docMaxLen} inputMode="numeric" />
+                <Input id="taxId" value={formData.taxId} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, docMaxLen); setFormData(prev => ({ ...prev, taxId: val })); }} placeholder={docPlaceholder} required className="h-9 text-sm shadow-sm" maxLength={docMaxLen} inputMode="numeric" />
               </div>
             </div>
 
@@ -1018,7 +1018,7 @@ export function ProviderManagement() {
                 <Input id="digitoNIT"
                   value={formData.notes?.startsWith('DV:') ? formData.notes.slice(3) : ''}
                   onChange={e => { const dv = e.target.value.replace(/\D/g, '').slice(0, 1); setFormData(prev => ({ ...prev, notes: dv ? `DV:${dv}` : '' })); }}
-                  placeholder="0-9" maxLength={1} className="h-9 text-sm shadow-sm w-24" inputMode="numeric" />
+                  placeholder="0-9" required maxLength={1} className="h-9 text-sm shadow-sm w-24" inputMode="numeric" />
                 <p className="text-xs text-muted-foreground">Número del 0 al 9 que valida el NIT</p>
               </div>
             )}
@@ -1029,7 +1029,7 @@ export function ProviderManagement() {
                 {formData.documentType === 'NIT' ? 'Razón Social' : 'Nombre del Proveedor'} <span className="text-destructive">*</span>
               </Label>
               <Input id="name" value={formData.name} onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder={formData.documentType === 'NIT' ? 'Ej: Empresa S.A.S.' : 'Ej: Hierbas Naturales S.A.'} className="h-9 text-sm shadow-sm" />
+                placeholder={formData.documentType === 'NIT' ? 'Ej: Empresa S.A.S.' : 'Ej: Hierbas Naturales S.A.'} required className="h-9 text-sm shadow-sm" />
             </div>
 
             {/* Nombre comercial */}
@@ -1047,7 +1047,7 @@ export function ProviderManagement() {
                 {formData.documentType === 'NIT' ? 'Email corporativo' : 'Email'} <span className="text-destructive">*</span>
               </Label>
               <Input id="email" type="email" value={formData.email} onChange={e => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                placeholder={formData.documentType === 'NIT' ? 'empresa@correo.com' : 'contacto@proveedor.com'} className="h-9 text-sm shadow-sm" />
+                placeholder={formData.documentType === 'NIT' ? 'empresa@correo.com' : 'contacto@proveedor.com'} required className="h-9 text-sm shadow-sm" />
             </div>
 
             {/* Teléfono */}
@@ -1055,7 +1055,7 @@ export function ProviderManagement() {
               <Label htmlFor="phone" className="text-xs font-medium">
                 {formData.documentType === 'NIT' ? 'Teléfono empresa' : 'Número de Contacto'} <span className="text-destructive">*</span>
               </Label>
-              <Input id="phone" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 12); setFormData(prev => ({ ...prev, phone: val })); }} placeholder="Ej: 3001234567" className="h-9 text-sm shadow-sm" maxLength={12} inputMode="numeric" />
+              <Input id="phone" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 12); setFormData(prev => ({ ...prev, phone: val })); }} placeholder="Ej: 3001234567" required className="h-9 text-sm shadow-sm" maxLength={12} inputMode="numeric" />
               <p className="text-xs text-muted-foreground">Solo números · mín. 10, máx. 12 dígitos</p>
             </div>
 
@@ -1091,7 +1091,7 @@ export function ProviderManagement() {
               <Input id="contactPerson" value={formData.contactPerson}
                 onChange={e => setFormData(prev => ({ ...prev, contactPerson: e.target.value }))}
                 placeholder={formData.documentType === 'NIT' ? 'Nombre del representante legal' : 'Nombre del contacto principal'}
-                className="h-9 text-sm shadow-sm" />
+                required className="h-9 text-sm shadow-sm" />
             </div>
 
             {/* Estado activo */}

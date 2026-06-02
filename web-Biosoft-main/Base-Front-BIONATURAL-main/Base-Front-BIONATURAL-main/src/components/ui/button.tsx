@@ -42,12 +42,16 @@ const Button = React.forwardRef<
     }
 >(({ className, variant, size, asChild = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "button";
+  const resolvedAriaLabel =
+    props["aria-label"] ??
+    (typeof props.title === "string" && props.title.trim().length > 0 ? props.title : undefined);
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
       ref={ref}
+      aria-label={resolvedAriaLabel}
       {...props}
     />
   );

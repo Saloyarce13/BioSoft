@@ -23,6 +23,23 @@ const logger = winston.createLogger({
 // Regex de validaciones
 const DOC_NUMBER_REGEX = /^\d{8,15}$/; // 8-15 dígitos numéricos
 const PHONE_REGEX      = /^\+?\d{10,20}$/; // 10-20 dígitos, permite '+' al inicio
+const AUTH_COOKIE_NAME = 'authToken';
+
+const getAuthCookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
+  maxAge: 24 * 60 * 60 * 1000,
+});
+
+const attachAuthCookie = (res, token) => {
+  res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
+};
+
+const clearAuthCookie = (res) => {
+  res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+};
 
 // Schemas de validación
 const registerSchema = z.object({
@@ -137,6 +154,7 @@ const register = async (req, res) => {
 
     // Generar token
     const token = generateToken(user.id);
+    attachAuthCookie(res, token);
 
     logger.info(`New user registered: ${user.email}`);
 
@@ -150,7 +168,6 @@ const register = async (req, res) => {
       message: 'Usuario registrado exitosamente',
       data: {
         user,
-        token,
         expiresIn: '24h'
       }
     });
@@ -238,6 +255,7 @@ const login = async (req, res) => {
 
     // Generar token
     const token = generateToken(user.id);
+    attachAuthCookie(res, token);
 
     // Remover password de la respuesta
     const { password: _, ...userWithoutPassword } = user;
@@ -249,7 +267,6 @@ const login = async (req, res) => {
       message: 'Inicio de sesión exitoso',
       data: {
         user: userWithoutPassword,
-        token,
         expiresIn: '24h'
       }
     });
@@ -544,6 +561,7 @@ const demoLogin = async (req, res) => {
 
     // Generar token
     const token = generateToken(fullUser.id);
+    attachAuthCookie(res, token);
 
     logger.info(`Demo login: ${fullUser.email} (${type})`);
 
@@ -552,7 +570,6 @@ const demoLogin = async (req, res) => {
       message: `Acceso demo como ${type} exitoso`,
       data: {
         user: fullUser,
-        token,
         expiresIn: '24h',
         isDemoUser: true
       }
@@ -668,9 +685,26 @@ const passwordResetConfirm = async (req, res) => {
   }
 };
 
+const logout = async (req, res) => {
+  try {
+    clearAuthCookie(res);
+    return res.status(200).json({
+      success: true,
+      message: 'Sesión cerrada correctamente',
+    });
+  } catch (error) {
+    logger.error('Logout error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
+  logout,
   getProfile,
   updateProfile,
   changePassword,
