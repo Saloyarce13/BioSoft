@@ -28,7 +28,7 @@ const AUTH_COOKIE_NAME = 'authToken';
 const getAuthCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   path: '/',
   maxAge: 24 * 60 * 60 * 1000,
 });
@@ -38,7 +38,7 @@ const attachAuthCookie = (res, token) => {
 };
 
 const clearAuthCookie = (res) => {
-  res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+  res.clearCookie(AUTH_COOKIE_NAME, getAuthCookieOptions());
 };
 
 // Schemas de validación

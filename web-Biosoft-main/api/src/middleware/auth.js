@@ -18,9 +18,18 @@ const JWT_SECRET = process.env.JWT_SECRET || 'bionatural-secret-key-2024';
 const AUTH_COOKIE_NAME = 'authToken';
 
 const extractTokenFromRequest = (req) => {
-  const authHeader = req.headers['authorization'];
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
   if (authHeader && authHeader.startsWith('Bearer ')) {
     return authHeader.split(' ')[1];
+  }
+
+  const tokenHeader = req.headers['x-access-token'] || req.headers['X-Access-Token'];
+  if (tokenHeader) {
+    return tokenHeader;
+  }
+
+  if (req.query && req.query.token) {
+    return req.query.token;
   }
 
   return req.cookies?.[AUTH_COOKIE_NAME] || null;
