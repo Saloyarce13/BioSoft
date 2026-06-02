@@ -1,29 +1,35 @@
 // src/services/email.service.js
+// Configurado para Brevo (ex Sendinblue) via SMTP
 const nodemailer = require('nodemailer');
 
-const getEmailConfig = () => {
-  const host = (process.env.EMAIL_HOST || process.env.SMTP_HOST || '').trim();
-  const port = Number(process.env.EMAIL_PORT || process.env.SMTP_PORT || 587);
-  const user = (process.env.EMAIL_USER || process.env.SMTP_USER || '').trim();
-  const pass = (process.env.EMAIL_PASS || process.env.SMTP_PASS || '').trim();
-  const from = (process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.BREVO_SENDER_EMAIL || process.env.EMAIL_USER || process.env.SMTP_USER || 'Bionatural <no-reply@bionatural.local>').trim();
-  const replyTo = (process.env.EMAIL_REPLY_TO || process.env.SMTP_REPLY_TO || '').trim() || undefined;
+// Brevo SMTP settings (fijos, no cambian)
+const BREVO_SMTP_HOST = 'smtp-relay.brevo.com';
+const BREVO_SMTP_PORT = 587;
 
-  return { host, port, user, pass, from, replyTo };
+const getEmailConfig = () => {
+  // Usuario SMTP de Brevo = email de la cuenta
+  const user = (process.env.BREVO_SMTP_USER || '').trim();
+  // Clave SMTP de Brevo (la que empieza con xsmtpsib-)
+  const pass = (process.env.BREVO_SMTP_KEY || '').trim();
+  // Remitente que aparece en el correo
+  const from = (process.env.BREVO_SENDER_EMAIL
+    ? `Bionatural <${process.env.BREVO_SENDER_EMAIL.trim()}>`
+    : `Bionatural <${user}>`);
+
+  return { user, pass, from };
 };
 
 let transporter;
 const getTransporter = () => {
-  if (transporter) {
-    return transporter;
-  }
+  if (transporter) return transporter;
 
-  const { host, port, user, pass } = getEmailConfig();
+  const { user, pass } = getEmailConfig();
 
-  if (!host || !user || !pass) {
+  if (!user || !pass) {
+    // Sin credenciales: modo simulado para desarrollo local
     transporter = {
       sendMail: async ({ to, subject }) => {
-        console.warn(`[EMAIL SIMULADO] Falta configuración SMTP. Para: ${to} | Asunto: ${subject}`);
+        console.warn(`[EMAIL SIMULADO] Faltan credenciales Brevo. Para: ${to} | Asunto: ${subject}`);
         return { accepted: [to], messageId: 'simulated-email' };
       },
     };
@@ -31,18 +37,17 @@ const getTransporter = () => {
   }
 
   transporter = nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
+    host: BREVO_SMTP_HOST,
+    port: BREVO_SMTP_PORT,
+    secure: false, // STARTTLS en puerto 587
     auth: { user, pass },
-    tls: { rejectUnauthorized: false },
   });
 
   return transporter;
 };
 
 const getFromAddress = () => getEmailConfig().from;
-const getReplyTo = () => getEmailConfig().replyTo;
+const getReplyTo = () => (process.env.BREVO_REPLY_TO || '').trim() || undefined;
 
 const send = async ({ to, subject, html, text }) => {
   const transporter = getTransporter();
