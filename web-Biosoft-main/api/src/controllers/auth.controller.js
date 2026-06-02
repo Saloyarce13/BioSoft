@@ -25,13 +25,19 @@ const DOC_NUMBER_REGEX = /^\d{8,15}$/; // 8-15 dígitos numéricos
 const PHONE_REGEX      = /^\+?\d{10,20}$/; // 10-20 dígitos, permite '+' al inicio
 const AUTH_COOKIE_NAME = 'authToken';
 
-const getAuthCookieOptions = () => ({
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
-  path: '/',
-  maxAge: 24 * 60 * 60 * 1000,
-});
+const getAuthCookieOptions = () => {
+  const isProd = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProd,
+    // En producción con frontend y API en dominios distintos se necesita 'none'
+    // para que el navegador envíe la cookie en peticiones cross-site.
+    // 'none' requiere secure: true (HTTPS), por eso solo aplica en producción.
+    sameSite: isProd ? 'none' : 'lax',
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000,
+  };
+};
 
 const attachAuthCookie = (res, token) => {
   res.cookie(AUTH_COOKIE_NAME, token, getAuthCookieOptions());

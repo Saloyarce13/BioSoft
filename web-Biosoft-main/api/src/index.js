@@ -72,8 +72,24 @@ const authLimiter = rateLimit({
 });
 
 // ─── CORS Configuration ────────────────────────────────────────────────────────
+// FRONTEND_URL puede ser una lista separada por comas: "https://a.com,https://b.com"
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(o => o.trim())
+  .filter(Boolean);
+
 const corsOptions = {
-  origin: true,
+  origin: (origin, callback) => {
+    // Permitir peticiones sin origin (Postman, mobile, server-to-server)
+    if (!origin) return callback(null, true);
+    // En desarrollo permitir todo
+    if (process.env.NODE_ENV !== 'production') return callback(null, true);
+    // En producción verificar contra la lista blanca
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('No permitido por CORS'));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
