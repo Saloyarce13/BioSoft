@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
+    "start:prod": "npx prisma migrate deploy && node src/index.js",
+    "dev": "nodemon src/index.js",
+    "migrate": "npx prisma migrate deploy",
+    "migrate:dev": "npx prisma migrate dev"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.5.0",
