@@ -172,7 +172,7 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
                       <div style={{ height: 16, marginBottom: 12 }}>
                         <p style={{ fontSize: 11, color: '#3A7D44', fontWeight: 600, margin: 0 }}>{product.category}</p>
                       </div>
-                      <button onClick={e => { e.stopPropagation(); addToCart(product as any); toast.success('Agregado'); }}
+                      <button onClick={e => { e.stopPropagation(); addToCart(product as any); }}
                         aria-label={`Agregar ${product.name} al carrito`}
                         style={{ width: '100%', height: 38, borderRadius: 10, border: 'none', backgroundColor: '#3A7D44', color: 'white', fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: 'auto' }}>
                         <ShoppingCart style={{ width: 13, height: 13 }} /> Agregar
@@ -308,7 +308,7 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
                     <div style={{ height: 16, marginBottom: 12 }}>
                       <p style={{ fontSize: 11, color: '#737370', margin: 0 }}>{product.category}</p>
                     </div>
-                    <button onClick={e => { e.stopPropagation(); addToCart(product as any); toast.success('Producto agregado'); }}
+                    <button onClick={e => { e.stopPropagation(); addToCart(product as any); }}
                       aria-label={`Agregar ${product.name} al carrito`}
                       style={{ width: '100%', height: 38, borderRadius: 9, backgroundColor: '#3A7D44', color: 'white', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 'auto' }}>
                       <ShoppingCart style={{ width: 13, height: 13 }} /> Agregar
