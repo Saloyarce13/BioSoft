@@ -99,10 +99,24 @@ const sendWelcomeEmail = async ({ to, name }) => {
           <p style="color:#4b5563;font-size:15px;line-height:1.7;margin:0 0 20px;">
             Nos alegra tenerte en <strong style="color:#16a34a;">Bionatural</strong>. Tu cuenta ha sido creada exitosamente.
           </p>
-          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:12px;padding:20px;margin-bottom:28px;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:12px;padding:20px;margin-bottom:24px;">
             <tr><td style="padding:6px 0;"><span style="color:#16a34a;">✅</span> <span style="color:#374151;font-size:14px;margin-left:8px;">Acceso al catálogo de productos naturales</span></td></tr>
             <tr><td style="padding:6px 0;"><span style="color:#16a34a;">✅</span> <span style="color:#374151;font-size:14px;margin-left:8px;">Realiza pedidos en línea fácilmente</span></td></tr>
             <tr><td style="padding:6px 0;"><span style="color:#16a34a;">✅</span> <span style="color:#374151;font-size:14px;margin-left:8px;">Historial de compras y seguimiento de pedidos</span></td></tr>
+          </table>
+          <!-- Bloque ubicación y WhatsApp -->
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;margin-bottom:24px;">
+            <tr><td style="padding:16px 20px;">
+              <p style="color:#15803d;font-size:13px;font-weight:700;margin:0 0 10px;">📍 Encuéntranos</p>
+              <p style="color:#374151;font-size:13px;margin:0 0 2px;"><strong>Bionatural — Tienda Principal</strong></p>
+              <p style="color:#6b7280;font-size:12px;margin:0 0 12px;">Calle 47 #45-87 · C.C. San Antonio, Local 101</p>
+              <!-- Botón WhatsApp -->
+              <a href="https://wa.me/573155397493?text=Hola%20Bionatural%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n"
+                 style="display:inline-flex;align-items:center;gap:8px;background:#25D366;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="18" height="18" alt="WhatsApp" style="vertical-align:middle;"/>
+                Contáctanos por WhatsApp
+              </a>
+            </td></tr>
           </table>
           <p style="color:#6b7280;font-size:13px;margin:0;">Con cariño,<br/><strong style="color:#16a34a;">El equipo de Bionatural 🌱</strong></p>
         </td></tr>
@@ -113,7 +127,7 @@ const sendWelcomeEmail = async ({ to, name }) => {
     </td></tr>
   </table>
 </body></html>`;
-  return send({ to, subject, html, text: `Hola ${name}, bienvenido a Bionatural. Tu cuenta ha sido creada exitosamente.` });
+  return send({ to, subject, html, text: `Hola ${name}, bienvenido a Bionatural. Tu cuenta ha sido creada exitosamente. Visítanos en Calle 47 #45-87, C.C. San Antonio Local 101 o escríbenos al +57 315 5397493.` });
 };
 
 const sendOrderCancelledEmail = async ({ to, clientName, orderId, items, total }) => {
@@ -261,8 +275,12 @@ const sendOrderReadyEmail = async ({ to, clientName, orderId, items, total, expi
               <p style="color:#15803d;font-size:13px;font-weight:700;margin:0 0 8px;">📍 Dónde recoger</p>
               <p style="color:#374151;font-size:13px;margin:0 0 4px;"><strong>Bionatural — Tienda Principal</strong></p>
               <p style="color:#6b7280;font-size:12px;margin:0 0 2px;">Calle 47 #45-87 · C.C. San Antonio, Local 101</p>
-              <p style="color:#6b7280;font-size:12px;margin:0 0 2px;">🕐 Lun–Vie 8:00 AM – 6:00 PM · Sáb 8:00 AM – 2:00 PM</p>
-              <p style="color:#6b7280;font-size:12px;margin:0;">📞 +57 315 5397493</p>
+              <p style="color:#6b7280;font-size:12px;margin:0 0 12px;">🕐 Lun–Vie 8:00 AM – 6:00 PM · Sáb 8:00 AM – 2:00 PM</p>
+              <a href="https://wa.me/573155397493?text=Hola%20Bionatural%2C%20tengo%20una%20pregunta%20sobre%20mi%20pedido%20%23${orderId}"
+                 style="display:inline-block;background:#25D366;color:#fff;text-decoration:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="16" height="16" alt="WhatsApp" style="vertical-align:middle;margin-right:6px;"/>
+                Contáctanos · +57 315 5397493
+              </a>
             </td></tr>
           </table>
           <p style="color:#6b7280;font-size:13px;margin:0;">Presenta tu nombre o email al llegar. El pago se realiza en tienda.<br/><strong style="color:#16a34a;">El equipo de Bionatural 🌱</strong></p>
