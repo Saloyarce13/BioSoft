@@ -614,14 +614,17 @@ const passwordResetRequest = async (req, res) => {
         data: { email, codeHash, expiresAt },
       });
 
-      await sendEmailWithCode({
+      // Enviar email sin bloquear — si falla se loguea pero no devuelve 500
+      sendEmailWithCode({
         to: email,
         code,
         subject: 'Código de recuperación — Bionatural',
         text: `Usa este código para restablecer tu contraseña. Expira en ${ttl} minutos.`,
+      }).then(() => {
+        logger.info(`Password reset code sent to: ${email}`);
+      }).catch(err => {
+        logger.error(`Failed to send password reset email to ${email}: ${err.message}`);
       });
-
-      logger.info(`Password reset code sent to: ${email}`);
     }
 
     return res.status(200).json({

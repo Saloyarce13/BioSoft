@@ -50,9 +50,11 @@ const getFromAddress = () => getEmailConfig().from;
 const getReplyTo = () => (process.env.BREVO_REPLY_TO || '').trim() || undefined;
 
 const send = async ({ to, subject, html, text }) => {
-  const transporter = getTransporter();
+  const t = getTransporter();
+  const { user, pass } = getEmailConfig();
+  console.log(`[EMAIL] Enviando a: ${to} | Asunto: ${subject} | SMTP user: ${user || 'NO CONFIGURADO'} | Pass: ${pass ? 'OK' : 'NO CONFIGURADO'}`);
   try {
-    return await transporter.sendMail({
+    const result = await t.sendMail({
       from: getFromAddress(),
       replyTo: getReplyTo(),
       to,
@@ -60,8 +62,11 @@ const send = async ({ to, subject, html, text }) => {
       html,
       text,
     });
+    console.log(`[EMAIL OK] Enviado a ${to} | messageId: ${result.messageId}`);
+    return result;
   } catch (error) {
-    console.error('[EMAIL ERROR]', error.message || error);
+    console.error(`[EMAIL ERROR] Fallo al enviar a ${to}: ${error.message}`);
+    console.error('[EMAIL ERROR DETALLE]', error);
     throw error;
   }
 };
