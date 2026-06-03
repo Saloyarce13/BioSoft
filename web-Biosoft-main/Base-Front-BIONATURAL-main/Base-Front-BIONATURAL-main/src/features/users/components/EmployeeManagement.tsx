@@ -391,18 +391,28 @@ export function EmployeeManagement() {
     },
     {
       header: 'Estado',
-      accessor: (e) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={e.isActive}
-            onCheckedChange={() => handleToggleEmployeeStatus(e.id)}
-            className="scale-90"
-          />
-          <span className="text-sm text-muted-foreground">
-            {e.isActive ? 'Activo' : 'Inactivo'}
-          </span>
-        </div>
-      )
+      accessor: (e) => {
+        const isAdmin = e.position?.toLowerCase() === 'administrador';
+        return (
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={e.isActive}
+              onCheckedChange={() => {
+                if (isAdmin) {
+                  toast.error('No se puede cambiar el estado de un Administrador');
+                  return;
+                }
+                handleToggleEmployeeStatus(e.id);
+              }}
+              disabled={isAdmin}
+              className={`scale-90 ${isAdmin ? 'opacity-40' : ''}`}
+            />
+            <span className="text-sm text-muted-foreground">
+              {e.isActive ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
+        );
+      }
     }
   ];
 
@@ -523,8 +533,14 @@ export function EmployeeManagement() {
         searchPlaceholder="Buscar por nombre, documento o email..."
         itemsPerPage={ITEMS_PER_PAGE}
         isLoading={loading}
-        onEdit={(e) => e.isActive ? openEditModal(e) : toast.error('Empleado inactivo')}
-        onDelete={(e) => e.isActive ? handleDeleteEmployee(e.id) : toast.error('Empleado inactivo')}
+        onEdit={(e) => {
+          if (e.position?.toLowerCase() === 'administrador') { toast.error('No se puede editar a un Administrador desde esta vista'); return; }
+          e.isActive ? openEditModal(e) : toast.error('Empleado inactivo');
+        }}
+        onDelete={(e) => {
+          if (e.position?.toLowerCase() === 'administrador') { toast.error('No se puede eliminar a un Administrador'); return; }
+          e.isActive ? handleDeleteEmployee(e.id) : toast.error('Empleado inactivo');
+        }}
         customActions={(e) => (
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openDetailModal(e)} title="Ver detalle">
             <Eye className="h-4 w-4 text-muted-foreground" />

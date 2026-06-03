@@ -76,7 +76,14 @@ export function ClientManagement() {
     try {
       setLoading(true); setError(null);
       const res = await getClients();
-      if (res.success) setClients(res.data.filter((c: any) => c.name !== 'Consumidor Final'));
+      if (res.success) setClients(
+        res.data.filter((c: any) =>
+          c.name !== 'Consumidor Final' &&
+          // Excluir usuarios con rol Administrador de la vista de clientes
+          (c.role?.toLowerCase() !== 'administrador') &&
+          (c.email !== 'admin@bionatural.com')
+        )
+      );
     } catch (err: any) {
       setError(err?.message || 'Error al cargar clientes');
       toast.error('Error al cargar clientes');

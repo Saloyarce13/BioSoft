@@ -834,17 +834,28 @@ export function UserManagement() {
     },
     {
       header: 'Estado',
-      accessor: (user) => (
-        <div className="flex items-center gap-2">
-          <Switch
-            checked={user.isActive}
-            onCheckedChange={() => handleToggleUserStatus(user.id)}
-          />
-          <span className="text-sm text-muted-foreground">
-            {user.isActive ? 'Activo' : 'Inactivo'}
-          </span>
-        </div>
-      )
+      accessor: (user) => {
+        const isAdmin = user.role?.toLowerCase() === 'administrador';
+        return (
+          <div className="flex items-center gap-2">
+            <Switch
+              checked={user.isActive}
+              onCheckedChange={() => {
+                if (isAdmin) {
+                  toast.error('No se puede cambiar el estado de un Administrador desde esta vista');
+                  return;
+                }
+                handleToggleUserStatus(user.id);
+              }}
+              disabled={isAdmin}
+              className={isAdmin ? 'opacity-40' : ''}
+            />
+            <span className="text-sm text-muted-foreground">
+              {user.isActive ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
+        );
+      }
     },
     {
       header: 'Último Acceso',
@@ -880,18 +891,23 @@ export function UserManagement() {
         searchPlaceholder="Buscar por nombre o email..."
         itemsPerPage={ITEMS_PER_PAGE}
         isLoading={loading}
-        onEdit={(u) => { if(u.isActive) openEditModal(u); else toast.error('Usuario inactivo'); }}
-        onDelete={(u) => { if(u.isActive) setUserToDelete(u); else toast.error('Usuario inactivo'); }}
-        customActions={(user) => (
-          <>
-            <Button variant="ghost" size="icon" onClick={() => openDetailModal(user)} title="Ver detalles" className="h-8 w-8">
-              <Eye className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="icon" onClick={() => user.isActive && openRoleModal(user)} disabled={!user.isActive} title={user.isActive ? 'Asignar rol/permisos' : 'Usuario inactivo'} className="h-8 w-8">
-              <Shield className={`w-4 h-4 ${user.isActive ? 'text-indigo-600' : 'text-muted-foreground/30'}`} />
-            </Button>
-          </>
-        )}
+        onEdit={(u) => { if(u.isActive && u.role?.toLowerCase() !== 'administrador') openEditModal(u); else if (u.role?.toLowerCase() === 'administrador') toast.error('No se puede editar a un Administrador'); else toast.error('Usuario inactivo'); }}
+        onDelete={(u) => { if(u.role?.toLowerCase() === 'administrador') { toast.error('No se puede eliminar a un Administrador'); return; } if(u.isActive) setUserToDelete(u); else toast.error('Usuario inactivo'); }}
+        customActions={(user) => {
+          const isAdmin = user.role?.toLowerCase() === 'administrador';
+          return (
+            <>
+              <Button variant="ghost" size="icon" onClick={() => openDetailModal(user)} title="Ver detalles" className="h-8 w-8">
+                <Eye className="w-4 h-4" />
+              </Button>
+              {!isAdmin && (
+                <Button variant="ghost" size="icon" onClick={() => user.isActive && openRoleModal(user)} disabled={!user.isActive} title={user.isActive ? 'Asignar rol/permisos' : 'Usuario inactivo'} className="h-8 w-8">
+                  <Shield className={`w-4 h-4 ${user.isActive ? 'text-indigo-600' : 'text-muted-foreground/30'}`} />
+                </Button>
+              )}
+            </>
+          );
+        }}
         extraFilters={
           <div className="flex flex-wrap gap-2">
             <Select value={originFilter} onValueChange={setOriginFilter}>
