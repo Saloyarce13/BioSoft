@@ -1,75 +1,57 @@
 // src/services/email.service.js
-// Configurado para Brevo (ex Sendinblue) via SMTP
-const nodemailer = require('nodemailer');
+// Usa la API REST de Brevo (no SMTP) — compatible con Render Free tier
+// El SMTP está bloqueado en Render gratuito (ETIMEDOUT), la API REST no.
 
-// Brevo SMTP settings (fijos, no cambian)
-const BREVO_SMTP_HOST = 'smtp-relay.brevo.com';
-const BREVO_SMTP_PORT = 587;
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
-const getEmailConfig = () => {
-  // Usuario SMTP de Brevo = email de la cuenta
-  const user = (process.env.BREVO_SMTP_USER || '').trim();
-  // Clave SMTP de Brevo (la que empieza con xsmtpsib-)
-  const pass = (process.env.BREVO_SMTP_KEY || '').trim();
-  // Remitente que aparece en el correo
-  const from = (process.env.BREVO_SENDER_EMAIL
-    ? `Bionatural <${process.env.BREVO_SENDER_EMAIL.trim()}>`
-    : `Bionatural <${user}>`);
+const getSenderEmail = () => (process.env.BREVO_SENDER_EMAIL || '').trim();
+const getApiKey    = () => (process.env.BREVO_API_KEY || '').trim();
 
-  return { user, pass, from };
-};
+/**
+ * Envía un email usando la API REST de Brevo.
+ * Funciona en cualquier hosting (no depende de puertos SMTP).
+ */
+const send = async ({ to, subject, html, text }) => {
+  const apiKey     = getApiKey();
+  const senderEmail = getSenderEmail();
 
-let transporter;
-const getTransporter = () => {
-  if (transporter) return transporter;
-
-  const { user, pass } = getEmailConfig();
-
-  if (!user || !pass) {
-    // Sin credenciales: modo simulado para desarrollo local
-    transporter = {
-      sendMail: async ({ to, subject }) => {
-        console.warn(`[EMAIL SIMULADO] Faltan credenciales Brevo. Para: ${to} | Asunto: ${subject}`);
-        return { accepted: [to], messageId: 'simulated-email' };
-      },
-    };
-    return transporter;
+  if (!apiKey || !senderEmail) {
+    console.warn(`[EMAIL SIMULADO] Faltan BREVO_API_KEY o BREVO_SENDER_EMAIL. Para: ${to} | Asunto: ${subject}`);
+    return { messageId: 'simulated' };
   }
 
-  transporter = nodemailer.createTransport({
-    host: BREVO_SMTP_HOST,
-    port: BREVO_SMTP_PORT,
-    secure: false, // STARTTLS en puerto 587
-    auth: { user, pass },
+  const body = {
+    sender:   { name: 'Bionatural', email: senderEmail },
+    to:       [{ email: to }],
+    subject,
+    htmlContent: html,
+    textContent: text,
+  };
+
+  console.log(`[EMAIL] Enviando via API REST a: ${to} | Asunto: ${subject}`);
+
+  const response = await fetch(BREVO_API_URL, {
+    method:  'POST',
+    headers: {
+      'accept':       'application/json',
+      'api-key':      apiKey,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(body),
   });
 
-  return transporter;
-};
+  const data = await response.json();
 
-const getFromAddress = () => getEmailConfig().from;
-const getReplyTo = () => (process.env.BREVO_REPLY_TO || '').trim() || undefined;
-
-const send = async ({ to, subject, html, text }) => {
-  const t = getTransporter();
-  const { user, pass } = getEmailConfig();
-  console.log(`[EMAIL] Enviando a: ${to} | Asunto: ${subject} | SMTP user: ${user || 'NO CONFIGURADO'} | Pass: ${pass ? 'OK' : 'NO CONFIGURADO'}`);
-  try {
-    const result = await t.sendMail({
-      from: getFromAddress(),
-      replyTo: getReplyTo(),
-      to,
-      subject,
-      html,
-      text,
-    });
-    console.log(`[EMAIL OK] Enviado a ${to} | messageId: ${result.messageId}`);
-    return result;
-  } catch (error) {
-    console.error(`[EMAIL ERROR] Fallo al enviar a ${to}: ${error.message}`);
-    console.error('[EMAIL ERROR DETALLE]', error);
-    throw error;
+  if (!response.ok) {
+    console.error(`[EMAIL ERROR] Brevo API respondió ${response.status}:`, data);
+    throw new Error(data?.message || `Brevo API error ${response.status}`);
   }
+
+  console.log(`[EMAIL OK] Enviado a ${to} | messageId: ${data.messageId}`);
+  return data;
 };
+
+// ─── Plantillas ────────────────────────────────────────────────────────────────
 
 const sendEmailWithCode = async ({ to, code, subject, text }) => {
   const html = `
@@ -96,7 +78,6 @@ const sendEmailWithCode = async ({ to, code, subject, text }) => {
     </td></tr>
   </table>
 </body></html>`;
-
   return send({ to, subject, html, text: `Tu código es: ${code}` });
 };
 
@@ -132,7 +113,6 @@ const sendWelcomeEmail = async ({ to, name }) => {
     </td></tr>
   </table>
 </body></html>`;
-
   return send({ to, subject, html, text: `Hola ${name}, bienvenido a Bionatural. Tu cuenta ha sido creada exitosamente.` });
 };
 
@@ -144,7 +124,6 @@ const sendOrderCancelledEmail = async ({ to, clientName, orderId, items, total }
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;text-align:center;">${i.quantity}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;text-align:right;">${Number(i.lineTotal).toLocaleString('es-CO')}</td>
     </tr>`).join('');
-
   const html = `
 <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/></head>
 <body style="margin:0;padding:0;background:#f4f7f4;font-family:'Segoe UI',Arial,sans-serif;">
@@ -156,9 +135,7 @@ const sendOrderCancelledEmail = async ({ to, clientName, orderId, items, total }
         </td></tr>
         <tr><td style="padding:36px 40px;">
           <h2 style="color:#1a1a1a;font-size:20px;margin:0 0 12px;">Hola, ${clientName}</h2>
-          <p style="color:#4b5563;font-size:15px;line-height:1.7;margin:0 0 20px;">
-            Tu pedido <strong>#${orderId}</strong> ha sido <strong style="color:#dc2626;">cancelado</strong>.
-          </p>
+          <p style="color:#4b5563;font-size:15px;line-height:1.7;margin:0 0 20px;">Tu pedido <strong>#${orderId}</strong> ha sido <strong style="color:#dc2626;">cancelado</strong>.</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:24px;">
             <tr style="background:#f9fafb;">
               <th style="padding:10px 12px;text-align:left;font-size:12px;color:#6b7280;font-weight:600;">Producto</th>
@@ -180,7 +157,6 @@ const sendOrderCancelledEmail = async ({ to, clientName, orderId, items, total }
     </td></tr>
   </table>
 </body></html>`;
-
   return send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} ha sido cancelado.` });
 };
 
@@ -197,7 +173,6 @@ const sendStockCancelledEmail = async ({ to, clientName, orderId, items, total, 
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:13px;text-align:center;">${i.quantity}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:13px;text-align:right;">${Number(i.lineTotal).toLocaleString('es-CO')}</td>
     </tr>`).join('');
-
   const html = `
 <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/></head>
 <body style="margin:0;padding:0;background:#f4f7f4;font-family:'Segoe UI',Arial,sans-serif;">
@@ -209,9 +184,7 @@ const sendStockCancelledEmail = async ({ to, clientName, orderId, items, total, 
         </td></tr>
         <tr><td style="padding:36px 40px;">
           <h2 style="color:#1a1a1a;font-size:20px;margin:0 0 12px;">Hola, ${clientName}</h2>
-          <p style="color:#4b5563;font-size:15px;line-height:1.7;margin:0 0 16px;">
-            Tu pedido <strong>#${orderId}</strong> fue <strong style="color:#dc2626;">cancelado automáticamente</strong> por falta de stock.
-          </p>
+          <p style="color:#4b5563;font-size:15px;line-height:1.7;margin:0 0 16px;">Tu pedido <strong>#${orderId}</strong> fue <strong style="color:#dc2626;">cancelado automáticamente</strong> por falta de stock.</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;margin-bottom:24px;">
             <tr><td style="padding:14px 16px;">
               <p style="color:#dc2626;font-size:13px;font-weight:700;margin:0 0 10px;">⚠️ Productos con stock insuficiente:</p>
@@ -239,7 +212,6 @@ const sendStockCancelledEmail = async ({ to, clientName, orderId, items, total, 
     </td></tr>
   </table>
 </body></html>`;
-
   return send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} fue cancelado por falta de stock.` });
 };
 
@@ -251,11 +223,9 @@ const sendOrderReadyEmail = async ({ to, clientName, orderId, items, total, expi
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;text-align:center;">${i.quantity}</td>
       <td style="padding:8px 12px;border-bottom:1px solid #e5e7eb;color:#374151;font-size:14px;text-align:right;">${Number(i.lineTotal).toLocaleString('es-CO')}</td>
     </tr>`).join('');
-
   const expiresFormatted = new Date(expiresAt).toLocaleString('es-CO', {
     dateStyle: 'full', timeStyle: 'short', timeZone: 'America/Bogota',
   });
-
   const html = `
 <!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"/></head>
 <body style="margin:0;padding:0;background:#f4f7f4;font-family:'Segoe UI',Arial,sans-serif;">
@@ -267,9 +237,7 @@ const sendOrderReadyEmail = async ({ to, clientName, orderId, items, total, expi
         </td></tr>
         <tr><td style="padding:36px 40px;">
           <h2 style="color:#1a1a1a;font-size:20px;margin:0 0 12px;">¡Hola, ${clientName}! 👋</h2>
-          <p style="color:#4b5563;font-size:15px;line-height:1.7;margin:0 0 20px;">
-            Tu pedido <strong>#${orderId}</strong> ya está <strong style="color:#16a34a;">listo para recoger</strong> en nuestra tienda.
-          </p>
+          <p style="color:#4b5563;font-size:15px;line-height:1.7;margin:0 0 20px;">Tu pedido <strong>#${orderId}</strong> ya está <strong style="color:#16a34a;">listo para recoger</strong> en nuestra tienda.</p>
           <table width="100%" cellpadding="0" cellspacing="0" style="background:#fef3c7;border:1px solid #fde68a;border-radius:12px;margin-bottom:24px;">
             <tr><td style="padding:16px 20px;">
               <p style="color:#92400e;font-size:14px;font-weight:700;margin:0 0 6px;">⏰ Tienes 24 horas para recogerlo</p>
@@ -297,10 +265,7 @@ const sendOrderReadyEmail = async ({ to, clientName, orderId, items, total, expi
               <p style="color:#6b7280;font-size:12px;margin:0;">📞 +57 315 5397493</p>
             </td></tr>
           </table>
-          <p style="color:#6b7280;font-size:13px;margin:0;">
-            Presenta tu nombre o email al llegar. El pago se realiza en tienda.<br/>
-            <strong style="color:#16a34a;">El equipo de Bionatural 🌱</strong>
-          </p>
+          <p style="color:#6b7280;font-size:13px;margin:0;">Presenta tu nombre o email al llegar. El pago se realiza en tienda.<br/><strong style="color:#16a34a;">El equipo de Bionatural 🌱</strong></p>
         </td></tr>
         <tr><td style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:16px 40px;text-align:center;">
           <p style="color:#9ca3af;font-size:11px;margin:0;">© 2024 Bionatural · Tienda Naturista</p>
@@ -309,7 +274,6 @@ const sendOrderReadyEmail = async ({ to, clientName, orderId, items, total, expi
     </td></tr>
   </table>
 </body></html>`;
-
   return send({ to, subject, html, text: `Hola ${clientName}, tu pedido #${orderId} está listo. Tienes hasta el ${expiresFormatted} para recogerlo.` });
 };
 
