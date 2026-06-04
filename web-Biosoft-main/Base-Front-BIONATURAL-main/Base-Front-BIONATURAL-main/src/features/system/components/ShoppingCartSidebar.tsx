@@ -22,6 +22,7 @@ interface ShoppingCartSidebarProps {
 // Subcomponente para el input de cantidad — maneja estado local para edición fluida
 function QuantityInput({ item, onUpdateQuantity }: { item: CartItem; onUpdateQuantity: (id: number, qty: number) => void }) {
   const [inputVal, setInputVal] = React.useState(String(item.quantity));
+  const max = item.stock ?? 999;
 
   // Sincronizar si cambia desde afuera (ej: botones +/-)
   React.useEffect(() => {
@@ -30,13 +31,12 @@ function QuantityInput({ item, onUpdateQuantity }: { item: CartItem; onUpdateQua
 
   const commit = (raw: string) => {
     const val = parseInt(raw, 10);
-    const max = item.stock ?? 999;
     if (isNaN(val) || val < 1) {
       setInputVal(String(item.quantity)); // revertir
       return;
     }
     if (val > max) {
-      toast.error(`Solo hay ${max} unidades disponibles`);
+      toast.error(`Solo hay ${max} unidades disponibles de ${item.name}`);
       setInputVal(String(max));
       onUpdateQuantity(item.id, max);
       return;
@@ -54,6 +54,15 @@ function QuantityInput({ item, onUpdateQuantity }: { item: CartItem; onUpdateQua
       onChange={e => {
         const raw = e.target.value.replace(/[^0-9]/g, '');
         setInputVal(raw);
+        // Validar en tiempo real si ya tiene valor
+        if (raw !== '') {
+          const val = parseInt(raw, 10);
+          if (val > max) {
+            toast.error(`Solo hay ${max} unidades disponibles de ${item.name}`);
+            setInputVal(String(max));
+            onUpdateQuantity(item.id, max);
+          }
+        }
       }}
       onBlur={e => commit(e.target.value)}
       onKeyDown={e => { if (e.key === 'Enter') commit(inputVal); }}
@@ -145,16 +154,23 @@ export function ShoppingCartSidebar({ isOpen, onClose, cartItems, onUpdateQuanti
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       {/* Controles cantidad */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 0, backgroundColor: '#F5F7FA', borderRadius: 10, overflow: 'hidden', border: '1px solid #E5E7EB' }}>
-                        <button onClick={() => dec(item)} aria-label={`Reducir cantidad de ${item.name}`} style={{ width: 30, height: 30, border: 'none', backgroundColor: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
-                          <Minus style={{ width: 12, height: 12 }} />
-                        </button>
-                        <QuantityInput item={item} onUpdateQuantity={onUpdateQuantity} />
-                        <button onClick={() => inc(item)} disabled={item.stock !== undefined && item.quantity >= item.stock}
-                          aria-label={`Aumentar cantidad de ${item.name}`}
-                          style={{ width: 30, height: 30, border: 'none', backgroundColor: 'transparent', cursor: item.stock !== undefined && item.quantity >= item.stock ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', opacity: item.stock !== undefined && item.quantity >= item.stock ? 0.4 : 1 }}>
-                          <Plus style={{ width: 12, height: 12 }} />
-                        </button>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 0, backgroundColor: '#F5F7FA', borderRadius: 10, overflow: 'hidden', border: '1px solid #E5E7EB' }}>
+                          <button onClick={() => dec(item)} aria-label={`Reducir cantidad de ${item.name}`} style={{ width: 30, height: 30, border: 'none', backgroundColor: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
+                            <Minus style={{ width: 12, height: 12 }} />
+                          </button>
+                          <QuantityInput item={item} onUpdateQuantity={onUpdateQuantity} />
+                          <button onClick={() => inc(item)} disabled={item.stock !== undefined && item.quantity >= item.stock}
+                            aria-label={`Aumentar cantidad de ${item.name}`}
+                            style={{ width: 30, height: 30, border: 'none', backgroundColor: 'transparent', cursor: item.stock !== undefined && item.quantity >= item.stock ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', opacity: item.stock !== undefined && item.quantity >= item.stock ? 0.4 : 1 }}>
+                            <Plus style={{ width: 12, height: 12 }} />
+                          </button>
+                        </div>
+                        {item.stock !== undefined && (
+                          <span style={{ fontSize: 10, color: item.quantity >= item.stock ? '#EF4444' : '#9CA3AF', textAlign: 'center' }}>
+                            Stock: {item.stock}
+                          </span>
+                        )}
                       </div>
 
                       <span style={{ fontSize: 15, fontWeight: 800, color: '#3A7D44', letterSpacing: '-0.01em' }}>{formatCOP(item.price * item.quantity)}</span>
