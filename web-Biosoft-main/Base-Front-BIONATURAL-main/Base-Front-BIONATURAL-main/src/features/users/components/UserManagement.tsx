@@ -801,16 +801,16 @@ export function UserManagement() {
       accessor: (user) => {
         const isInactive = !user.isActive;
         return (
-          <div className="flex items-center gap-3">
-            <Avatar className={`h-10 w-10 ${isInactive ? 'opacity-50' : ''}`}>
+          <div className="flex items-center gap-2 min-w-0">
+            <Avatar className={`h-8 w-8 shrink-0 ${isInactive ? 'opacity-50' : ''}`}>
               <AvatarImage src={user.avatar} alt={`${user.firstName} ${user.lastName}`} />
-              <AvatarFallback className={isInactive ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary font-medium'}>
+              <AvatarFallback className={`text-xs ${isInactive ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary font-medium'}`}>
                 {getUserInitials(user.firstName || '', user.lastName || '')}
               </AvatarFallback>
             </Avatar>
-            <div>
-              <p className={`font-medium ${isInactive ? 'text-muted-foreground' : ''}`}>{user.firstName} {user.lastName}</p>
-              <p className="text-xs text-muted-foreground">{user.email}</p>
+            <div className="min-w-0">
+              <p className={`font-medium text-sm truncate ${isInactive ? 'text-muted-foreground' : ''}`}>{user.firstName} {user.lastName}</p>
+              <p className="text-xs text-muted-foreground truncate max-w-[180px]">{user.email}</p>
             </div>
           </div>
         );
