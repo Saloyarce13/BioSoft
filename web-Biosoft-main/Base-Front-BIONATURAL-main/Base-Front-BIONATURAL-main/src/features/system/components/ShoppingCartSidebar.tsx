@@ -47,11 +47,14 @@ function QuantityInput({ item, onUpdateQuantity }: { item: CartItem; onUpdateQua
 
   return (
     <input
-      type="number"
-      min={1}
-      max={item.stock ?? 999}
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
       value={inputVal}
-      onChange={e => setInputVal(e.target.value)}
+      onChange={e => {
+        const raw = e.target.value.replace(/[^0-9]/g, '');
+        setInputVal(raw);
+      }}
       onBlur={e => commit(e.target.value)}
       onKeyDown={e => { if (e.key === 'Enter') commit(inputVal); }}
       aria-label={`Cantidad de ${item.name}`}

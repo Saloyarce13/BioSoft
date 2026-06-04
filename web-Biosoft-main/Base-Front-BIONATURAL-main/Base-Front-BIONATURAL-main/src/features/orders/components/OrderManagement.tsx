@@ -607,11 +607,14 @@ export function OrderManagement({ user }: { user?: { role: string; permissions: 
                         <div className="flex items-center justify-center gap-1">
                           <AntButton size="small" type="text" onClick={() => updateCartItem(record.productId, 'quantity', q - 1)}>-</AntButton>
                           <input
-                            type="number"
-                            min={1}
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={q}
                             onChange={e => {
-                              const val = parseInt(e.target.value);
+                              const raw = e.target.value.replace(/[^0-9]/g, '');
+                              if (raw === '') return;
+                              const val = parseInt(raw, 10);
                               if (!isNaN(val) && val >= 1) updateCartItem(record.productId, 'quantity', val);
                             }}
                             style={{ width: 44, textAlign: 'center', fontWeight: 700, fontSize: 12, border: '1px solid #e2e8f0', borderRadius: 4, padding: '1px 4px' }}
