@@ -606,7 +606,16 @@ export function OrderManagement({ user }: { user?: { role: string; permissions: 
                       render: (q, record) => (
                         <div className="flex items-center justify-center gap-1">
                           <AntButton size="small" type="text" onClick={() => updateCartItem(record.productId, 'quantity', q - 1)}>-</AntButton>
-                          <span className="font-black text-slate-700 text-xs">{q}</span>
+                          <input
+                            type="number"
+                            min={1}
+                            value={q}
+                            onChange={e => {
+                              const val = parseInt(e.target.value);
+                              if (!isNaN(val) && val >= 1) updateCartItem(record.productId, 'quantity', val);
+                            }}
+                            style={{ width: 44, textAlign: 'center', fontWeight: 700, fontSize: 12, border: '1px solid #e2e8f0', borderRadius: 4, padding: '1px 4px' }}
+                          />
                           <AntButton size="small" type="text" onClick={() => updateCartItem(record.productId, 'quantity', q + 1)}>+</AntButton>
                         </div>
                       )

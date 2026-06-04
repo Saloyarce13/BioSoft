@@ -196,7 +196,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
     setIsRecoveryLoading(true);
     setEmailError('');
     try {
-      await passwordResetRequest(recoveryEmail.trim());
+      await passwordResetRequest(recoveryEmail.trim().toLowerCase());
       // Iniciar cooldown de 60 segundos
       setRecoveryCooldown(60);
       const interval = setInterval(() => {
@@ -474,7 +474,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
               </div>
               <div className="text-center mt-6 pt-6 border-t">
                 <p className="text-sm text-muted-foreground mb-3">¿No tienes cuenta?</p>
-                <Button variant="outline" className="w-full" onClick={onRegister}>
+                <Button variant="outline" className="w-full" onClick={() => setIsRegisterModalOpen(true)}>
                   <UserPlus className="h-4 w-4 mr-2" /> Regístrate como Cliente
                 </Button>
               </div>

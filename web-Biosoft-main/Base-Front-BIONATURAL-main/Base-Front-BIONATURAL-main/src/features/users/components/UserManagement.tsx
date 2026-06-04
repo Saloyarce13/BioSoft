@@ -1005,18 +1005,18 @@ export function UserManagement() {
 
               <Separator />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label className="text-muted-foreground">Email</Label>
-                  <p className="font-medium flex items-center gap-1">
-                    <Mail className="h-4 w-4" />
+                  <p className="font-medium flex items-center gap-1 break-all">
+                    <Mail className="h-4 w-4 shrink-0" />
                     {selectedUser.email}
                   </p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Celular</Label>
                   <p className="font-medium flex items-center gap-1">
-                    <Phone className="h-4 w-4" />
+                    <Phone className="h-4 w-4 shrink-0" />
                     {selectedUser.phone || 'No especificado'}
                   </p>
                 </div>

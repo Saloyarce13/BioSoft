@@ -104,7 +104,21 @@ export function ShoppingCartSidebar({ isOpen, onClose, cartItems, onUpdateQuanti
                         <button onClick={() => dec(item)} aria-label={`Reducir cantidad de ${item.name}`} style={{ width: 30, height: 30, border: 'none', backgroundColor: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
                           <Minus style={{ width: 12, height: 12 }} />
                         </button>
-                        <span style={{ width: 28, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1C1C1A' }}>{item.quantity}</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={item.stock ?? 999}
+                          value={item.quantity}
+                          onChange={e => {
+                            const val = parseInt(e.target.value);
+                            if (isNaN(val) || val < 1) return;
+                            const max = item.stock ?? 999;
+                            if (val > max) { toast.error(`Solo hay ${max} unidades disponibles`); return; }
+                            onUpdateQuantity(item.id, val);
+                          }}
+                          aria-label={`Cantidad de ${item.name}`}
+                          style={{ width: 36, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1C1C1A', border: 'none', backgroundColor: 'transparent', outline: 'none', padding: '0 2px' }}
+                        />
                         <button onClick={() => inc(item)} disabled={item.stock !== undefined && item.quantity >= item.stock}
                           aria-label={`Aumentar cantidad de ${item.name}`}
                           style={{ width: 30, height: 30, border: 'none', backgroundColor: 'transparent', cursor: item.stock !== undefined && item.quantity >= item.stock ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', opacity: item.stock !== undefined && item.quantity >= item.stock ? 0.4 : 1 }}>

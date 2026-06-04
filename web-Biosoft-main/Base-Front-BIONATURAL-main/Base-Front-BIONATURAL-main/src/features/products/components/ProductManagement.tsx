@@ -682,7 +682,7 @@ export function ProductManagement({
               <div className="border rounded-lg max-h-32 overflow-y-auto p-2 space-y-1 shadow-sm">
                 {providers.filter((p: any) => p.isActive).length === 0 ? (
                   <p className="text-xs text-muted-foreground text-center py-2">Sin proveedores disponibles</p>
-                ) : providers.filter((p: any) => p.isActive).map((p: any) => (
+                ) : providers.filter((p: any) => p.isActive || true).map((p: any) => (
                   <label key={p.id} className="flex items-center gap-2 px-2 py-1 rounded hover:bg-muted/50 cursor-pointer">
                     <input
                       type="checkbox"
