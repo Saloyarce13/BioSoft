@@ -3,6 +3,7 @@ import { ImageWithFallback } from '../../../components/figma/ImageWithFallback';
 import { toast } from 'sonner';
 import { Plus, Minus, Trash2, ShoppingBag, ArrowRight, Package, CheckCircle, Leaf, X } from 'lucide-react';
 import { formatCOP } from '../../../shared/utils/storage';
+import React from 'react';
 
 export interface CartItem {
   id: number; name: string; price: number; image: string;
@@ -16,6 +17,47 @@ interface ShoppingCartSidebarProps {
   onRemoveItem: (id: number) => void;
   onClearCart: () => void;
   onCheckout: () => void;
+}
+
+// Subcomponente para el input de cantidad — maneja estado local para edición fluida
+function QuantityInput({ item, onUpdateQuantity }: { item: CartItem; onUpdateQuantity: (id: number, qty: number) => void }) {
+  const [inputVal, setInputVal] = React.useState(String(item.quantity));
+
+  // Sincronizar si cambia desde afuera (ej: botones +/-)
+  React.useEffect(() => {
+    setInputVal(String(item.quantity));
+  }, [item.quantity]);
+
+  const commit = (raw: string) => {
+    const val = parseInt(raw, 10);
+    const max = item.stock ?? 999;
+    if (isNaN(val) || val < 1) {
+      setInputVal(String(item.quantity)); // revertir
+      return;
+    }
+    if (val > max) {
+      toast.error(`Solo hay ${max} unidades disponibles`);
+      setInputVal(String(max));
+      onUpdateQuantity(item.id, max);
+      return;
+    }
+    onUpdateQuantity(item.id, val);
+    setInputVal(String(val));
+  };
+
+  return (
+    <input
+      type="number"
+      min={1}
+      max={item.stock ?? 999}
+      value={inputVal}
+      onChange={e => setInputVal(e.target.value)}
+      onBlur={e => commit(e.target.value)}
+      onKeyDown={e => { if (e.key === 'Enter') commit(inputVal); }}
+      aria-label={`Cantidad de ${item.name}`}
+      style={{ width: 40, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1C1C1A', border: 'none', backgroundColor: 'transparent', outline: 'none', padding: '0 2px' }}
+    />
+  );
 }
 
 export function ShoppingCartSidebar({ isOpen, onClose, cartItems, onUpdateQuantity, onRemoveItem, onClearCart, onCheckout }: ShoppingCartSidebarProps) {
@@ -104,21 +146,7 @@ export function ShoppingCartSidebar({ isOpen, onClose, cartItems, onUpdateQuanti
                         <button onClick={() => dec(item)} aria-label={`Reducir cantidad de ${item.name}`} style={{ width: 30, height: 30, border: 'none', backgroundColor: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151' }}>
                           <Minus style={{ width: 12, height: 12 }} />
                         </button>
-                        <input
-                          type="number"
-                          min={1}
-                          max={item.stock ?? 999}
-                          value={item.quantity}
-                          onChange={e => {
-                            const val = parseInt(e.target.value);
-                            if (isNaN(val) || val < 1) return;
-                            const max = item.stock ?? 999;
-                            if (val > max) { toast.error(`Solo hay ${max} unidades disponibles`); return; }
-                            onUpdateQuantity(item.id, val);
-                          }}
-                          aria-label={`Cantidad de ${item.name}`}
-                          style={{ width: 36, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#1C1C1A', border: 'none', backgroundColor: 'transparent', outline: 'none', padding: '0 2px' }}
-                        />
+                        <QuantityInput item={item} onUpdateQuantity={onUpdateQuantity} />
                         <button onClick={() => inc(item)} disabled={item.stock !== undefined && item.quantity >= item.stock}
                           aria-label={`Aumentar cantidad de ${item.name}`}
                           style={{ width: 30, height: 30, border: 'none', backgroundColor: 'transparent', cursor: item.stock !== undefined && item.quantity >= item.stock ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#374151', opacity: item.stock !== undefined && item.quantity >= item.stock ? 0.4 : 1 }}>
