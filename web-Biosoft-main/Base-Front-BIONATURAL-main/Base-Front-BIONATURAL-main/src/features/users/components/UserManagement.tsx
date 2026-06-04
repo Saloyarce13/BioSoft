@@ -1005,59 +1005,64 @@ export function UserManagement() {
 
               <Separator />
 
-              <div className="grid grid-cols-1 gap-4">
+              {/* Email solo — campo completo */}
+              <div>
+                <Label className="text-xs text-muted-foreground">Email</Label>
+                <p className="font-medium flex items-center gap-1 break-all text-sm">
+                  <Mail className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  {selectedUser.email}
+                </p>
+              </div>
+
+              {/* Resto en grid 2 columnas */}
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 <div>
-                  <Label className="text-muted-foreground">Email</Label>
-                  <p className="font-medium flex items-center gap-1 break-all">
-                    <Mail className="h-4 w-4 shrink-0" />
-                    {selectedUser.email}
+                  <Label className="text-xs text-muted-foreground">Celular</Label>
+                  <p className="font-medium flex items-center gap-1 text-sm">
+                    <Phone className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    {selectedUser.phone || '—'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Celular</Label>
-                  <p className="font-medium flex items-center gap-1">
-                    <Phone className="h-4 w-4 shrink-0" />
-                    {selectedUser.phone || 'No especificado'}
+                  <Label className="text-xs text-muted-foreground">Estado</Label>
+                  <div className="mt-0.5">
+                    <Badge variant={selectedUser.isActive ? "default" : "secondary"} className="text-xs">
+                      {selectedUser.isActive ? 'Activo' : 'Inactivo'}
+                    </Badge>
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Tipo Documento</Label>
+                  <p className="font-medium flex items-center gap-1 text-sm">
+                    <CreditCard className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    {selectedUser.documentType || '—'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Tipo de Documento</Label>
-                  <p className="font-medium flex items-center gap-1">
-                    <CreditCard className="h-4 w-4" />
-                    {selectedUser.documentType}
+                  <Label className="text-xs text-muted-foreground">Nº Documento</Label>
+                  <p className="font-medium text-sm">{selectedUser.documentNumber || '—'}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Dirección</Label>
+                  <p className="font-medium flex items-center gap-1 text-sm">
+                    <MapPin className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    {selectedUser.address || '—'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Número de Documento</Label>
-                  <p className="font-medium">{selectedUser.documentNumber || 'No especificado'}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Dirección</Label>
-                  <p className="font-medium flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {selectedUser.address || 'No especificada'}
+                  <Label className="text-xs text-muted-foreground">Ciudad</Label>
+                  <p className="font-medium flex items-center gap-1 text-sm">
+                    <Building2 className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    {selectedUser.city || '—'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Ciudad</Label>
-                  <p className="font-medium flex items-center gap-1">
-                    <Building2 className="h-4 w-4" />
-                    {selectedUser.city || 'No especificada'}
-                  </p>
+                  <Label className="text-xs text-muted-foreground">Fecha Creación</Label>
+                  <p className="font-medium text-sm">{selectedUser.createdAt}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Estado</Label>
-                  <Badge variant={selectedUser.isActive ? "default" : "secondary"}>
-                    {selectedUser.isActive ? 'Activo' : 'Inactivo'}
-                  </Badge>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Fecha de Creación</Label>
-                  <p className="font-medium">{selectedUser.createdAt}</p>
-                </div>
-                <div>
-                  <Label className="text-muted-foreground">Último Acceso</Label>
-                  <p className="font-medium">{selectedUser.lastLogin}</p>
+                  <Label className="text-xs text-muted-foreground">Último Acceso</Label>
+                  <p className="font-medium text-sm">{selectedUser.lastLogin}</p>
                 </div>
               </div>
 
