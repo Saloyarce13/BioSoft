@@ -542,7 +542,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input id="reg-docNum" value={registerForm.documentNumber}
                     onChange={e => setRegisterForm(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '').slice(0, 15) }))}
-                    placeholder="Número" className="pl-10 h-9 text-sm" maxLength={15} inputMode="numeric" />
+                    placeholder="Número" className="pl-10 h-9 text-sm" maxLength={15} inputMode="numeric" autoComplete="off" />
                 </div>
               </div>
             </div>
@@ -554,7 +554,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input id="reg-firstName" value={registerForm.firstName}
                     onChange={e => setRegisterForm(p => ({ ...p, firstName: e.target.value }))}
-                    placeholder="Tu nombre" className="pl-10 h-9 text-sm" />
+                    placeholder="Tu nombre" className="pl-10 h-9 text-sm" autoComplete="given-name" />
                 </div>
               </div>
               <div className="space-y-1.5">
@@ -563,7 +563,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input id="reg-lastName" value={registerForm.lastName}
                     onChange={e => setRegisterForm(p => ({ ...p, lastName: e.target.value }))}
-                    placeholder="Tu apellido" className="pl-10 h-9 text-sm" />
+                    placeholder="Tu apellido" className="pl-10 h-9 text-sm" autoComplete="family-name" />
                 </div>
               </div>
             </div>
@@ -574,7 +574,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input id="reg-email" type="email" value={registerForm.email}
                   onChange={e => setRegisterForm(p => ({ ...p, email: e.target.value }))}
-                  placeholder="tu@email.com" className="pl-10 h-9 text-sm" />
+                  placeholder="tu@email.com" className="pl-10 h-9 text-sm" autoComplete="off" />
               </div>
             </div>
 
@@ -584,7 +584,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input id="reg-phone" value={registerForm.phone}
                   onChange={e => setRegisterForm(p => ({ ...p, phone: e.target.value }))}
-                  placeholder="+57 300 000 0000" className="pl-10 h-9 text-sm" />
+                  placeholder="+57 300 000 0000" className="pl-10 h-9 text-sm" autoComplete="off" />
               </div>
             </div>
 
