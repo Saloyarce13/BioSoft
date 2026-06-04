@@ -1060,10 +1060,6 @@ export function UserManagement() {
                   <Label className="text-xs text-muted-foreground">Fecha Creación</Label>
                   <p className="font-medium text-sm">{selectedUser.createdAt}</p>
                 </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Último Acceso</Label>
-                  <p className="font-medium text-sm">{selectedUser.lastLogin}</p>
-                </div>
               </div>
 
               {selectedUser.permissions && selectedUser.permissions.length > 0 && (
