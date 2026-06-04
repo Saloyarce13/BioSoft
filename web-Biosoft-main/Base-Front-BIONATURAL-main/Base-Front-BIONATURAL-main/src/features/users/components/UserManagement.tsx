@@ -857,12 +857,6 @@ export function UserManagement() {
         );
       }
     },
-    {
-      header: 'Último Acceso',
-      accessor: (user) => (
-        <span className="text-sm text-muted-foreground">{user.lastLogin}</span>
-      )
-    }
   ];
 
   return (
