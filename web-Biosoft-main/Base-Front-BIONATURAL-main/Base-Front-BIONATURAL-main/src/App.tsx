@@ -337,7 +337,7 @@ export default function App() {
   const getUserInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
 
   if (currentView === 'landing') {
-    return <div><LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} /></div>;
+    return <div><LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} onRegisterOpen={() => setCurrentView('register')} /></div>;
   }
 
   if (currentView === 'register') {
@@ -483,7 +483,7 @@ export default function App() {
 
   const renderContent = () => {
     switch (currentView) {
-      case 'landing':   return <LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} />;
+      case 'landing':   return <LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} onRegisterOpen={() => setCurrentView('register')} />;
       case 'home':
       case 'dashboard':
       case 'reports':   return <DashboardReportsView />;

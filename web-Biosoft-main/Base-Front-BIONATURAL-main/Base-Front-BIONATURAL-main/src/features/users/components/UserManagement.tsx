@@ -1031,7 +1031,7 @@ export function UserManagement() {
                   <Label className="text-muted-foreground">Número de Documento</Label>
                   <p className="font-medium">{selectedUser.documentNumber || 'No especificado'}</p>
                 </div>
-                <div className="col-span-2">
+                <div>
                   <Label className="text-muted-foreground">Dirección</Label>
                   <p className="font-medium flex items-center gap-1">
                     <MapPin className="h-4 w-4" />

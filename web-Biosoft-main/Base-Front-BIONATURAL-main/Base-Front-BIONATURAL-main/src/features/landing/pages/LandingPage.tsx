@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { formatCOP } from '../../../shared/utils/storage';
 import {
   Leaf, Search, ShoppingCart, Package, LogIn,
-  Shield, Award, Heart, Sparkles, Star, ArrowRight
+  Shield, Award, Heart, Sparkles, Star, ArrowRight, UserPlus
 } from 'lucide-react';
 
 interface Product {
@@ -22,6 +22,7 @@ interface Product {
 
 interface LandingPageProps {
   onLoginOpen?: () => void;
+  onRegisterOpen?: () => void;
 }
 
 const LANDING_CARD_WIDTH = 240;
@@ -30,7 +31,7 @@ const LANDING_CARD_IMAGE_HEIGHT = 176;
 const LANDING_CARD_TITLE_HEIGHT = 42;
 
 // ── Hero con carrusel automático de productos reales ─────────────────────────
-function HeroCarousel({ products, onLoginOpen }: { products: { id: string | number; image?: string; name: string }[]; onLoginOpen?: () => void }) {
+function HeroCarousel({ products, onLoginOpen, onRegisterOpen }: { products: { id: string | number; image?: string; name: string }[]; onLoginOpen?: () => void; onRegisterOpen?: () => void }) {
   const [current, setCurrent] = React.useState(0);
   const images = products.filter(p => p.image).map(p => ({ id: p.id, src: p.image!, name: p.name }));
 
@@ -68,7 +69,7 @@ function HeroCarousel({ products, onLoginOpen }: { products: { id: string | numb
           <button onClick={() => onLoginOpen?.()} style={{ padding: '14px 32px', borderRadius: 12, backgroundColor: '#3A7D44', color: 'white', fontSize: 15, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 4px 20px rgba(58,125,68,0.4)' }}>
             <ShoppingCart style={{ width: 18, height: 18 }} /> Comprar ahora
           </button>
-          <button onClick={() => onLoginOpen?.()} style={{ padding: '14px 28px', borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 15, fontWeight: 600, border: '1.5px solid rgba(255,255,255,0.4)', cursor: 'pointer', backdropFilter: 'blur(8px)' }}>
+          <button onClick={() => onRegisterOpen?.()} style={{ padding: '14px 28px', borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.15)', color: 'white', fontSize: 15, fontWeight: 600, border: '1.5px solid rgba(255,255,255,0.4)', cursor: 'pointer', backdropFilter: 'blur(8px)' }}>
             Crear cuenta gratis
           </button>
         </div>
@@ -93,7 +94,7 @@ function HeroCarousel({ products, onLoginOpen }: { products: { id: string | numb
   );
 }
 
-export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
+export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen, onRegisterOpen }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [apiProducts, setApiProducts] = useState<Product[]>([]);
@@ -169,11 +170,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
               Iniciar sesión
             </button>
             <button
-              onClick={() => onLoginOpen?.()}
+              onClick={() => onRegisterOpen?.()}
               style={{ padding: '8px 18px', borderRadius: 8, backgroundColor: '#3A7D44', fontSize: 13, fontWeight: 600, color: 'white', cursor: 'pointer', border: 'none', display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              <ShoppingCart style={{ width: 14, height: 14 }} />
-              Comprar
+              <UserPlus style={{ width: 14, height: 14 }} />
+              Crear cuenta
             </button>
           </div>
         </div>
@@ -182,7 +183,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen }) => {
       <main style={{ flex: 1 }}>
 
         {/* ══ HERO con carrusel de productos reales ══ */}
-        <HeroCarousel products={apiProducts} onLoginOpen={onLoginOpen} />
+        <HeroCarousel products={apiProducts} onLoginOpen={onLoginOpen} onRegisterOpen={onRegisterOpen} />
 
         {/* ══ BENEFICIOS ══ */}
         <section style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px' }}>
