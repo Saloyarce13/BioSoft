@@ -571,32 +571,40 @@ export function UserManagement() {
           {/* Campos */}
           <div className="px-4 py-4 space-y-3">
 
-            {/* Tipo doc + Nº doc — PRIMERO */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="docType" className="text-xs font-medium">Tipo doc. <span className="text-destructive">*</span></Label>
-                <Select value={formData.documentType}
-                  onValueChange={v => { setFormData(p => ({ ...p, documentType: v as User['documentType'] })); setFormErrors(p => ({ ...p, documentType: '' })); }}>
-                  <SelectTrigger id="docType" className={`h-9 text-sm shadow-sm ${formErrors.documentType ? 'border-destructive' : ''}`}>
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DOCUMENT_TYPES.map(d => <SelectItem key={d.value} value={d.value} className="text-sm">{d.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                {formErrors.documentType && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentType}</p>}
+            {/* Si es cliente editando, mostrar nota informativa */}
+            {!isCreate && (formData.role || '').toLowerCase() === 'cliente' && (
+              <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+                ℹ️ Solo puedes editar el nombre del cliente. Los demás datos los gestiona el propio cliente desde su perfil.
               </div>
-              <div className="space-y-1">
-                <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
-                <Input id="docNum" value={formData.documentNumber}
-                  onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '') })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
-                  placeholder="1234567890"
-                  inputMode="numeric"
-                  required
-                  className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''}`} />
-                {formErrors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentNumber}</p>}
+            )}
+
+            {/* Tipo doc + Nº doc — solo para no-clientes o creación */}
+            {(isCreate || (formData.role || '').toLowerCase() !== 'cliente') && (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <Label htmlFor="docType" className="text-xs font-medium">Tipo doc. <span className="text-destructive">*</span></Label>
+                  <Select value={formData.documentType}
+                    onValueChange={v => { setFormData(p => ({ ...p, documentType: v as User['documentType'] })); setFormErrors(p => ({ ...p, documentType: '' })); }}>
+                    <SelectTrigger id="docType" className={`h-9 text-sm shadow-sm ${formErrors.documentType ? 'border-destructive' : ''}`}>
+                      <SelectValue placeholder="Tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DOCUMENT_TYPES.map(d => <SelectItem key={d.value} value={d.value} className="text-sm">{d.label}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  {formErrors.documentType && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentType}</p>}
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
+                  <Input id="docNum" value={formData.documentNumber}
+                    onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '') })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
+                    placeholder="1234567890"
+                    inputMode="numeric"
+                    className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''}`} />
+                  {formErrors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentNumber}</p>}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Nombre + Apellido */}
             <div className="grid grid-cols-2 gap-2">
@@ -620,7 +628,8 @@ export function UserManagement() {
               </div>
             </div>
 
-            {/* Email */}
+            {/* Email — oculto cuando admin edita cliente */}
+            {(isCreate || (formData.role || '').toLowerCase() !== 'cliente') && (
             <div className="space-y-1">
               <Label htmlFor="email" className="text-xs font-medium">Email <span className="text-destructive">*</span></Label>
               <Input id="email" type="email" value={formData.email}
@@ -630,8 +639,10 @@ export function UserManagement() {
                 className={`h-9 text-sm shadow-sm ${formErrors.email ? 'border-destructive' : ''}`} />
               {formErrors.email && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.email}</p>}
             </div>
+            )}
 
-            {/* Celular */}
+            {/* Celular — oculto cuando admin edita cliente */}
+            {(isCreate || (formData.role || '').toLowerCase() !== 'cliente') && (
             <div className="space-y-1">
               <Label htmlFor="phone" className="text-xs font-medium">Celular <span className="text-destructive">*</span></Label>
               <Input id="phone" value={formData.phone}
@@ -642,6 +653,7 @@ export function UserManagement() {
                 className={`h-9 text-sm shadow-sm ${formErrors.phone ? 'border-destructive' : ''}`} />
               {formErrors.phone && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.phone}</p>}
             </div>
+            )}
 
             {/* Rol */}
             <div className="space-y-1">
@@ -661,7 +673,8 @@ export function UserManagement() {
             </div>
 
             {/* ── Campos extra según rol ─────────────────────────────── */}
-            {/* Dirección — para todos */}
+            {/* Dirección — oculta cuando admin edita cliente */}
+            {(isCreate || (formData.role || '').toLowerCase() !== 'cliente') && (
             <div className="space-y-1">
               <Label htmlFor="address" className="text-xs font-medium">Dirección</Label>
               <Input id="address" value={formData.address}
@@ -669,6 +682,7 @@ export function UserManagement() {
                 placeholder="Calle 123 #45-67"
                 className="h-9 text-sm shadow-sm" />
             </div>
+            )}
 
             {/* Campos solo para roles de empleado */}
             {(() => {
@@ -727,48 +741,50 @@ export function UserManagement() {
               );
             })()}
 
-            {/* Contraseña */}
-            {isCreate ? (
-              <div className="rounded-md bg-muted px-4 py-3 text-sm text-muted-foreground">
-                La contraseña inicial será el número de documento ingresado.
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="pw" className="text-xs font-medium">Nueva Contraseña <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                  <div className="relative">
-                    <Input id="pw" type={showPassword ? 'text' : 'password'} value={formData.password}
-                      onChange={e => { setFormData(p => ({ ...p, password: e.target.value })); setFormErrors(p => ({ ...p, password: '' })); }}
-                      placeholder="Mín. 8 caracteres"
-                      required
-                      className={`h-9 text-sm shadow-sm pr-9 ${formErrors.password ? 'border-destructive' : ''}`} />
-                    <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
-                      onClick={() => setShowPassword(p => !p)}>
-                      {showPassword ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
-                    </Button>
-                  </div>
-                  {formErrors.password && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.password}</p>}
+            {/* Contraseña — solo visible si NO es cliente */}
+            {(() => {
+              const isCliente = (formData.role || '').toLowerCase() === 'cliente' || (formData.role || '').toLowerCase() === 'user';
+              if (isCliente) return null;
+              return isCreate ? (
+                <div className="rounded-md bg-muted px-4 py-3 text-sm text-muted-foreground">
+                  La contraseña inicial será el número de documento ingresado.
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor="cpw" className="text-xs font-medium">Confirmar</Label>
-                  <div className="relative">
-                    <Input id="cpw" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword}
-                      onChange={e => { setFormData(p => ({ ...p, confirmPassword: e.target.value })); setFormErrors(p => ({ ...p, confirmPassword: '' })); }}
-                      placeholder="Repite"
-                      required
-                      className={`h-9 text-sm shadow-sm pr-9 ${formErrors.confirmPassword ? 'border-destructive' : ''}`} />
-                    <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
-                      onClick={() => setShowConfirmPassword(p => !p)}>
-                      {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
-                    </Button>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="pw" className="text-xs font-medium">Nueva Contraseña <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                    <div className="relative">
+                      <Input id="pw" type={showPassword ? 'text' : 'password'} value={formData.password}
+                        onChange={e => { setFormData(p => ({ ...p, password: e.target.value })); setFormErrors(p => ({ ...p, password: '' })); }}
+                        placeholder="Mín. 8 caracteres"
+                        className={`h-9 text-sm shadow-sm pr-9 ${formErrors.password ? 'border-destructive' : ''}`} />
+                      <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
+                        onClick={() => setShowPassword(p => !p)}>
+                        {showPassword ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
+                      </Button>
+                    </div>
+                    {formErrors.password && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.password}</p>}
                   </div>
-                  {formErrors.confirmPassword && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.confirmPassword}</p>}
-                  {formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 8 && (
-                    <p className="text-xs text-green-600">✓ Coinciden</p>
-                  )}
+                  <div className="space-y-1">
+                    <Label htmlFor="cpw" className="text-xs font-medium">Confirmar</Label>
+                    <div className="relative">
+                      <Input id="cpw" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword}
+                        onChange={e => { setFormData(p => ({ ...p, confirmPassword: e.target.value })); setFormErrors(p => ({ ...p, confirmPassword: '' })); }}
+                        placeholder="Repite"
+                        className={`h-9 text-sm shadow-sm pr-9 ${formErrors.confirmPassword ? 'border-destructive' : ''}`} />
+                      <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
+                        onClick={() => setShowConfirmPassword(p => !p)}>
+                        {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
+                      </Button>
+                    </div>
+                    {formErrors.confirmPassword && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.confirmPassword}</p>}
+                    {formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 8 && (
+                      <p className="text-xs text-green-600">✓ Coinciden</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}            {/* Estado */}
+              );
+            })()}            {/* Estado */}
             <div className="flex items-center justify-between rounded-lg border px-3 py-2 shadow-sm">
               <div>
                 <p className="text-xs font-medium">Estado</p>
