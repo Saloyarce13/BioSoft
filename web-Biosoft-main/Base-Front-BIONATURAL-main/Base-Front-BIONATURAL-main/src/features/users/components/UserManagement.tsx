@@ -786,6 +786,10 @@ export function UserManagement() {
                 </>
               );
             })()}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   const tableColumns: Column<User>[] = [
