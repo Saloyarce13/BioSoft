@@ -3,7 +3,6 @@ const express = require('express');
 const cors    = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet  = require('helmet');
-const rateLimit = require('express-rate-limit');
 const winston = require('winston');
 require('dotenv').config();
 
@@ -48,29 +47,6 @@ app.use(helmet({
   }
 }));
 
-// ─── Rate Limiting ─────────────────────────────────────────────────────────────
-const generalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 300 : 2000, // 300 en prod, 2000 en dev
-  message: {
-    success: false,
-    message: 'Demasiadas solicitudes, intenta de nuevo en 15 minutos'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: process.env.NODE_ENV === 'production' ? 10 : 200, // 10 en prod, 200 en dev
-  message: {
-    success: false,
-    message: 'Demasiados intentos de login, intenta de nuevo en 15 minutos'
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
-
 // ─── CORS Configuration ────────────────────────────────────────────────────────
 // FRONTEND_URL puede ser una lista separada por comas: "https://a.com,https://b.com"
 const allowedOrigins = (process.env.FRONTEND_URL || '')
@@ -111,10 +87,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Apply rate limiting
-app.use('/api/', generalLimiter);
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
+// Apply rate limiting — eliminado, solo se validan errores reales (credenciales, campos vacíos)
 
 // ─── Rutas de la API ───────────────────────────────────────────────────────────
 app.use('/api/auth',       require('./routes/auth.routes'));

@@ -64,9 +64,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
   const [codeError, setCodeError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [loginError, setLoginError] = useState('');
-  const [loginAttemptsLeft, setLoginAttemptsLeft] = useState<number | null>(null);
-  const [loginBlockedUntil, setLoginBlockedUntil] = useState<number | null>(null);
-  const [recoveryCooldown, setRecoveryCooldown] = useState(0); // segundos restantes
+  const [recoveryCooldown, setRecoveryCooldown] = useState(0);
 
   const [registerForm, setRegisterForm] = useState({
     firstName: '', lastName: '', email: '', phone: '',
@@ -75,20 +73,11 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Verificar bloqueo local
-    if (loginBlockedUntil && loginBlockedUntil > Date.now()) {
-      const secs = Math.ceil((loginBlockedUntil - Date.now()) / 1000);
-      setLoginError(`Demasiados intentos. Espera ${Math.ceil(secs / 60)} minuto${Math.ceil(secs / 60) !== 1 ? 's' : ''}.`);
-      return;
-    }
     setIsLoading(true);
     setLoginError('');
     try {
       const response = await authLogin(email, password);
       const { user } = response.data;
-      setLoginAttemptsLeft(null);
-      setLoginBlockedUntil(null);
-      // user.role puede ser objeto {id, name, permissions} o string
       const roleName = typeof user.role === 'object' ? (user.role as any)?.name ?? '' : user.role ?? '';
       const rolePerms: string[] = typeof user.role === 'object'
         ? ((user.role as any)?.permissions ?? []).map((p: any) => p?.permission?.name ?? p?.name ?? p)
@@ -96,18 +85,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
       onLogin({ name: user.name, email: user.email, role: roleName, permissions: rolePerms });
       toast.success('Inicio de sesión exitoso');
     } catch (error: any) {
-      const msg: string = error?.message || '';
-      const blockedSecs: number = error?.blockedSeconds;
-      const attemptsLeft: number = error?.attemptsLeft;
-      if (blockedSecs) {
-        setLoginBlockedUntil(Date.now() + blockedSecs * 1000);
-        setLoginError(msg);
-      } else if (attemptsLeft !== undefined) {
-        setLoginAttemptsLeft(attemptsLeft);
-        setLoginError(msg);
-      } else {
-        setLoginError('Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.');
-      }
+      setLoginError('Correo o contraseña incorrectos. Verifica tus datos e intenta de nuevo.');
     } finally {
       setIsLoading(false);
     }
