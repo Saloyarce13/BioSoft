@@ -589,8 +589,9 @@ export function UserManagement() {
               <div className="space-y-1">
                 <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
                 <Input id="docNum" value={formData.documentNumber}
-                  onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
+                  onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '') })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
                   placeholder="1234567890"
+                  inputMode="numeric"
                   required
                   className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''}`} />
                 {formErrors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentNumber}</p>}

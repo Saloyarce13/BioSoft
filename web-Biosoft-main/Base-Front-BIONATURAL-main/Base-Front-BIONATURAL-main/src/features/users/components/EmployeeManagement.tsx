@@ -449,7 +449,7 @@ export function EmployeeManagement() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
-                <Input id="docNum" value={formData.documentNumber} onChange={e => { const val = e.target.value.replace(/\\D/g, '').slice(0, 15); setFormData(p => ({ ...p, documentNumber: val })); }} placeholder="1234567890" className="h-9 text-sm shadow-sm" maxLength={15} inputMode="numeric" />
+                <Input id="docNum" value={formData.documentNumber} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 15); setFormData(p => ({ ...p, documentNumber: val })); }} placeholder="1234567890" className="h-9 text-sm shadow-sm" maxLength={15} inputMode="numeric" />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -468,7 +468,7 @@ export function EmployeeManagement() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="phone" className="text-xs font-medium">Teléfono</Label>
-              <Input id="phone" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\\D/g, ''); setFormData(p => ({ ...p, phone: val })); }} placeholder="3001234567" className="h-9 text-sm shadow-sm" inputMode="numeric" />
+              <Input id="phone" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setFormData(p => ({ ...p, phone: val })); }} placeholder="3001234567" className="h-9 text-sm shadow-sm" inputMode="numeric" />
             </div>
             <div className="space-y-1">
               <Label htmlFor="address" className="text-xs font-medium">Dirección</Label>

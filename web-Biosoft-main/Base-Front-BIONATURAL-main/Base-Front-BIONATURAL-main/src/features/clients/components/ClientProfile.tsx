@@ -86,11 +86,14 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
     setSaving(true);
     try {
       const newName = editForm.name.trim();
+      const phone = editForm.phone.replace(/\D/g, ''); // solo números
+      // Actualizar nombre y teléfono via /auth/profile
+      await apiFetch('/auth/profile', { method: 'PUT', body: JSON.stringify({ name: newName, phone: phone || undefined, address: editForm.address.trim() || undefined }) });
+      // Sincronizar también en tabla clients si existe
       if (clientData) {
-        await apiFetch(`/clients/${clientData.id}`, { method: 'PUT', body: JSON.stringify({ name: newName, phone: editForm.phone.trim() || null, address: editForm.address.trim() || null }) });
-        setClientData(prev => prev ? { ...prev, name: newName, phone: editForm.phone || null, address: editForm.address || null } : prev);
+        await apiFetch(`/clients/${clientData.id}`, { method: 'PUT', body: JSON.stringify({ name: newName, phone: phone || null, address: editForm.address.trim() || null }) });
+        setClientData(prev => prev ? { ...prev, name: newName, phone: phone || null, address: editForm.address || null } : prev);
       }
-      await apiFetch('/users/me/profile', { method: 'PATCH', body: JSON.stringify({ name: newName }) });
       setUserData(prev => prev ? { ...prev, name: newName } : prev);
       onNameChange?.(newName);
       setIsEditing(false);
@@ -105,7 +108,8 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
     if (pwForm.new !== pwForm.confirm) { toast.error('Las contraseñas no coinciden'); return; }
     setSaving(true);
     try {
-      await apiFetch(`/users/${userData?.id}/password`, { method: 'PATCH', body: JSON.stringify({ currentPassword: pwForm.current, newPassword: pwForm.new }) });
+      // Endpoint correcto para cambio de contraseña
+      await apiFetch('/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword: pwForm.current, newPassword: pwForm.new }) });
       setPwForm({ current: '', new: '', confirm: '' });
       setIsChangingPassword(false);
       toast.success('Contraseña actualizada');
@@ -269,12 +273,18 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
             <DialogDescription>Actualiza tu información de contacto</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            {[{ label: 'Nombre completo', key: 'name' as const, placeholder: 'Tu nombre' }, { label: 'Teléfono', key: 'phone' as const, placeholder: '+57 300 000 0000' }, { label: 'Dirección', key: 'address' as const, placeholder: 'Tu dirección' }].map(({ label, key, placeholder }) => (
-              <div key={key} className="space-y-1">
-                <Label className="text-xs">{label}</Label>
-                <Input value={editForm[key]} onChange={e => setEditForm(p => ({ ...p, [key]: e.target.value }))} placeholder={placeholder} className="h-9 text-sm" />
-              </div>
-            ))}
+            <div className="space-y-1">
+              <Label className="text-xs">Nombre completo</Label>
+              <Input value={editForm.name} onChange={e => setEditForm(p => ({ ...p, name: e.target.value }))} placeholder="Tu nombre" className="h-9 text-sm" autoComplete="off" />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Teléfono</Label>
+              <Input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))} placeholder="3001234567" className="h-9 text-sm" inputMode="numeric" autoComplete="off" maxLength={15} />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs">Dirección</Label>
+              <Input value={editForm.address} onChange={e => setEditForm(p => ({ ...p, address: e.target.value }))} placeholder="Tu dirección" className="h-9 text-sm" autoComplete="off" />
+            </div>
           </div>
           <div className="flex gap-2 justify-end pt-2">
             <button onClick={() => setIsEditing(false)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #E5E5E2', backgroundColor: 'white', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Cancelar</button>

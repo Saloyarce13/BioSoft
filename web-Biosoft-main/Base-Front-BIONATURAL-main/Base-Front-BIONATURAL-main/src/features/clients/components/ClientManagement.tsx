@@ -266,9 +266,11 @@ export function ClientManagement() {
                   {formData.documentType === 'NIT' ? 'NIT (sin dígito)' : 'Nº documento'} <span className="text-destructive">*</span>
                 </Label>
                 <Input id="docNum" value={formData.documentNumber}
-                  onChange={e => setFormData(p => ({ ...p, documentNumber: e.target.value }))}
+                  onChange={e => setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '') }))}
                   onBlur={() => touch('documentNumber')}
                   placeholder={formData.documentType === 'NIT' ? 'Ej: 900123456' : '1234567890'}
+                  inputMode="numeric"
+                  autoComplete="off"
                   className={`h-9 text-sm shadow-sm ${errors.documentNumber ? 'border-destructive' : ''}`} />
                 {errors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{errors.documentNumber}</p>}
               </div>
@@ -340,8 +342,10 @@ export function ClientManagement() {
               <div className="space-y-1">
                 <Label htmlFor="phone" className="text-xs font-medium">Teléfono</Label>
                 <Input id="phone" value={formData.phone}
-                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))}
                   placeholder="+57 300 123 4567"
+                  inputMode="numeric"
+                  autoComplete="off"
                   className="h-9 text-sm shadow-sm" />
               </div>
             )}
@@ -351,8 +355,10 @@ export function ClientManagement() {
                 <Label htmlFor="phoneEmp" className="text-xs font-medium">Teléfono empresa</Label>
                 <Input id="phoneEmp"
                   value={formData.phone}
-                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))}
+                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))}
                   placeholder="Ej: 601 234 5678"
+                  inputMode="numeric"
+                  autoComplete="off"
                   className="h-9 text-sm shadow-sm" />
               </div>
             )}
