@@ -303,15 +303,15 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
                   </div>
                   <div style={{ padding: '14px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                     <div style={{ height: 34, marginBottom: 4, overflow: 'hidden' }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: '#1C1C1A', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</p>
+                      <p style={{ fontSize: 13.5, fontWeight: 700, color: '#1A1A18', margin: 0, lineHeight: 1.3, letterSpacing: '-0.01em', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{product.name}</p>
                     </div>
                     <div style={{ height: 16, marginBottom: 12 }}>
-                      <p style={{ fontSize: 11, color: '#737370', margin: 0 }}>{product.category}</p>
+                      <p style={{ fontSize: 11, color: '#9CA3A0', margin: 0, fontWeight: 500, letterSpacing: '0.01em' }}>{product.category}</p>
                     </div>
                     <button onClick={e => { e.stopPropagation(); addToCart(product as any); }}
                       aria-label={`Agregar ${product.name} al carrito`}
-                      style={{ width: '100%', height: 38, borderRadius: 9, backgroundColor: '#3A7D44', color: 'white', fontSize: 12, fontWeight: 600, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 'auto' }}>
-                      <ShoppingCart style={{ width: 13, height: 13 }} /> Agregar
+                      style={{ width: '100%', height: 38, borderRadius: 9, backgroundColor: '#3A7D44', color: 'white', fontSize: 13, fontWeight: 700, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 'auto', letterSpacing: '0.01em' }}>
+                      <ShoppingCart style={{ width: 13, height: 13 }} /> Agregar al carrito
                     </button>
                   </div>
                 </div>
