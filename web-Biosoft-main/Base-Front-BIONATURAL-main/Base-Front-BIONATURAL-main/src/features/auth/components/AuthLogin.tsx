@@ -440,7 +440,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
                     <AlertTriangle className="h-3 w-3 shrink-0" /> {loginError}
                   </p>
                 )}
-                <Button type="submit" className="w-full" disabled={isLoading || (!!loginBlockedUntil && loginBlockedUntil > Date.now())}>
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
                 </Button>
               </form>
