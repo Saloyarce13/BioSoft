@@ -63,6 +63,17 @@ const getAll = async (req, res) => {
         { documentNumber: { contains: search } },
       ];
     }
+
+    // Excluir clientes que tienen rol Administrador en la tabla users
+    const adminEmails = await prisma.user.findMany({
+      where: { role: { name: { equals: 'Administrador', mode: 'insensitive' } } },
+      select: { email: true },
+    }).then(users => users.map(u => u.email).filter(Boolean));
+
+    if (adminEmails.length > 0) {
+      where.email = { notIn: adminEmails };
+    }
+
     const clients = await prisma.client.findMany({ where, orderBy: { createdAt: 'desc' } });
     return res.status(200).json({ success: true, total: clients.length, data: clients });
   } catch (error) {
