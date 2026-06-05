@@ -301,9 +301,11 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
                   <label style={{ fontSize: 12, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
                     Notas <span style={{ fontSize: 11, color: '#9CA3AF', fontWeight: 400 }}>(opcional)</span>
                   </label>
-                  <Textarea value={notes} onChange={e => setNotes(e.target.value)}
+                  <Textarea value={notes} onChange={e => setNotes(e.target.value.slice(0, 200))}
                     placeholder="Ej: Recogerá otra persona, necesito factura..."
-                    rows={3} style={{ borderRadius: 10, border: '1.5px solid #E5E5E2', fontSize: 13, resize: 'none' as const }} />
+                    rows={3} maxLength={200}
+                    style={{ borderRadius: 10, border: '1.5px solid #E5E5E2', fontSize: 13, resize: 'none' as const }} />
+                  <p style={{ fontSize: 11, color: '#9CA3AF', textAlign: 'right' as const, marginTop: 4 }}>{notes.length}/200</p>
                 </div>
               </div>
             </div>
