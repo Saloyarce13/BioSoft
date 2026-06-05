@@ -570,246 +570,222 @@ export function UserManagement() {
 
           {/* Campos */}
           <div className="px-4 py-4 space-y-3">
-
-            {/* Si es cliente editando, mostrar nota informativa */}
-            {!isCreate && (formData.role || '').toLowerCase() === 'cliente' && (
-              <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
-                ℹ️ Solo puedes editar el nombre del cliente. Los demás datos los gestiona el propio cliente desde su perfil.
-              </div>
-            )}
-
-            {/* Tipo doc + Nº doc — solo para no-clientes o creación */}
-            {(isCreate || (formData.role || '').toLowerCase() !== 'cliente') && (
-              <div className="grid grid-cols-2 gap-2">
-                <div className="space-y-1">
-                  <Label htmlFor="docType" className="text-xs font-medium">Tipo doc. <span className="text-destructive">*</span></Label>
-                  <Select value={formData.documentType}
-                    onValueChange={v => { setFormData(p => ({ ...p, documentType: v as User['documentType'] })); setFormErrors(p => ({ ...p, documentType: '' })); }}>
-                    <SelectTrigger id="docType" className={`h-9 text-sm shadow-sm ${formErrors.documentType ? 'border-destructive' : ''}`}>
-                      <SelectValue placeholder="Tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {DOCUMENT_TYPES.map(d => <SelectItem key={d.value} value={d.value} className="text-sm">{d.label}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  {formErrors.documentType && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentType}</p>}
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
-                  <Input id="docNum" value={formData.documentNumber}
-                    onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '') })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
-                    placeholder="1234567890"
-                    inputMode="numeric"
-                    className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''}`} />
-                  {formErrors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentNumber}</p>}
-                </div>
-              </div>
-            )}
-
-            {/* Nombre + Apellido */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="space-y-1">
-                <Label htmlFor="firstName" className="text-xs font-medium">Nombre <span className="text-destructive">*</span></Label>
-                <Input id="firstName" value={formData.firstName}
-                  onChange={e => { setFormData(p => ({ ...p, firstName: e.target.value })); setFormErrors(p => ({ ...p, firstName: '' })); }}
-                  placeholder="Ej: Ana"
-                  required
-                  className={`h-9 text-sm shadow-sm ${formErrors.firstName ? 'border-destructive' : ''}`} />
-                {formErrors.firstName && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.firstName}</p>}
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="lastName" className="text-xs font-medium">Apellido <span className="text-destructive">*</span></Label>
-                <Input id="lastName" value={formData.lastName}
-                  onChange={e => { setFormData(p => ({ ...p, lastName: e.target.value })); setFormErrors(p => ({ ...p, lastName: '' })); }}
-                  placeholder="Ej: García"
-                  required
-                  className={`h-9 text-sm shadow-sm ${formErrors.lastName ? 'border-destructive' : ''}`} />
-                {formErrors.lastName && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.lastName}</p>}
-              </div>
-            </div>
-
-            {/* Email — oculto cuando admin edita cliente */}
-            {(isCreate || (formData.role || '').toLowerCase() !== 'cliente') && (
-            <div className="space-y-1">
-              <Label htmlFor="email" className="text-xs font-medium">Email <span className="text-destructive">*</span></Label>
-              <Input id="email" type="email" value={formData.email}
-                onChange={e => { setFormData(p => ({ ...p, email: e.target.value })); setFormErrors(p => ({ ...p, email: '' })); }}
-                placeholder="usuario@email.com"
-                required
-                className={`h-9 text-sm shadow-sm ${formErrors.email ? 'border-destructive' : ''}`} />
-              {formErrors.email && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.email}</p>}
-            </div>
-            )}
-
-            {/* Celular — oculto cuando admin edita cliente */}
-            {(isCreate || (formData.role || '').toLowerCase() !== 'cliente') && (
-            <div className="space-y-1">
-              <Label htmlFor="phone" className="text-xs font-medium">Celular <span className="text-destructive">*</span></Label>
-              <Input id="phone" value={formData.phone}
-                onChange={e => { const val = e.target.value.replace(/\D/g, ''); setFormData(p => ({ ...p, phone: val })); setFormErrors(p => ({ ...p, phone: '' })); }}
-                placeholder="3001234567"
-                inputMode="numeric"
-                required
-                className={`h-9 text-sm shadow-sm ${formErrors.phone ? 'border-destructive' : ''}`} />
-              {formErrors.phone && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.phone}</p>}
-            </div>
-            )}
-
-            {/* Rol */}
-            <div className="space-y-1">
-              <Label htmlFor="role" className="text-xs font-medium">Rol <span className="text-destructive">*</span></Label>
-              <Select value={formData.role}
-                onValueChange={v => { setFormData(p => ({ ...p, role: v })); setFormErrors(p => ({ ...p, role: '' })); }}>
-                <SelectTrigger id="role" className={`h-9 text-sm shadow-sm ${formErrors.role ? 'border-destructive' : ''}`}>
-                  <SelectValue placeholder="Seleccionar rol" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(apiRoles.length > 0 ? apiRoles.map(r => ({ value: r.name, label: r.name })) : AVAILABLE_ROLES).map(r => (
-                    <SelectItem key={r.value} value={r.value} className="text-sm">{r.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {formErrors.role && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.role}</p>}
-            </div>
-
-            {/* ── Campos extra según rol ─────────────────────────────── */}
-            {/* Dirección — oculta cuando admin edita cliente */}
-            {(isCreate || (formData.role || '').toLowerCase() !== 'cliente') && (
-            <div className="space-y-1">
-              <Label htmlFor="address" className="text-xs font-medium">Dirección</Label>
-              <Input id="address" value={formData.address}
-                onChange={e => setFormData(p => ({ ...p, address: e.target.value }))}
-                placeholder="Calle 123 #45-67"
-                className="h-9 text-sm shadow-sm" />
-            </div>
-            )}
-
-            {/* Campos solo para roles de empleado */}
+            {/* Variable centralizada para simplificar condiciones */}
             {(() => {
-              const rol = formData.role.toLowerCase();
-              const isEmpleado = ['vendedor', 'bodega', 'contador', 'administrador'].includes(rol);
-              const isCliente  = rol === 'cliente' || rol === 'user';
-              if (!isEmpleado && !isCliente) return null;
+              const esCliente = !isCreate && ['cliente', 'user'].includes((formData.role || '').toLowerCase());
               return (
                 <>
-                  {isEmpleado && (
-                    <>
-                      {/* Cargo */}
-                      <div className="space-y-1">
-                        <Label htmlFor="position" className="text-xs font-medium">Cargo <span className="text-destructive">*</span></Label>
-                        <Input id="position" value={formData.position}
-                          onChange={e => setFormData(p => ({ ...p, position: e.target.value }))}
-                          placeholder="Ej: Vendedor, Bodeguero..."
-                          required
-                          className="h-9 text-sm shadow-sm" />
-                      </div>
-                      {/* Fecha nacimiento + Fecha contratación */}
-                      <div className="grid grid-cols-2 gap-2">
+                {/* Nota informativa cuando es cliente */}
+                {esCliente && (
+                  <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-xs text-blue-700">
+                    ℹ️ Solo puedes editar el nombre del cliente. Los demás datos los gestiona el propio cliente desde su perfil.
+                  </div>
+                )}
+
+                {/* Tipo doc + Nº doc — solo no-clientes o creación */}
+                {!esCliente && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="space-y-1">
+                      <Label htmlFor="docType" className="text-xs font-medium">Tipo doc. <span className="text-destructive">*</span></Label>
+                      <Select value={formData.documentType}
+                        onValueChange={v => { setFormData(p => ({ ...p, documentType: v as User['documentType'] })); setFormErrors(p => ({ ...p, documentType: '' })); }}>
+                        <SelectTrigger id="docType" className={`h-9 text-sm shadow-sm ${formErrors.documentType ? 'border-destructive' : ''}`}>
+                          <SelectValue placeholder="Tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {DOCUMENT_TYPES.map(d => <SelectItem key={d.value} value={d.value} className="text-sm">{d.label}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                      {formErrors.documentType && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentType}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
+                      <Input id="docNum" value={formData.documentNumber}
+                        onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '') })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
+                        placeholder="1234567890" inputMode="numeric"
+                        className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''}`} />
+                      {formErrors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentNumber}</p>}
+                    </div>
+                  </div>
+                )}
+
+                {/* Nombre + Apellido — siempre visible */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="firstName" className="text-xs font-medium">Nombre <span className="text-destructive">*</span></Label>
+                    <Input id="firstName" value={formData.firstName}
+                      onChange={e => { setFormData(p => ({ ...p, firstName: e.target.value })); setFormErrors(p => ({ ...p, firstName: '' })); }}
+                      placeholder="Ej: Ana"
+                      className={`h-9 text-sm shadow-sm ${formErrors.firstName ? 'border-destructive' : ''}`} />
+                    {formErrors.firstName && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.firstName}</p>}
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="lastName" className="text-xs font-medium">Apellido <span className="text-destructive">*</span></Label>
+                    <Input id="lastName" value={formData.lastName}
+                      onChange={e => { setFormData(p => ({ ...p, lastName: e.target.value })); setFormErrors(p => ({ ...p, lastName: '' })); }}
+                      placeholder="Ej: García"
+                      className={`h-9 text-sm shadow-sm ${formErrors.lastName ? 'border-destructive' : ''}`} />
+                    {formErrors.lastName && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.lastName}</p>}
+                  </div>
+                </div>
+
+                {/* Email, celular, rol, dirección — solo no-clientes o creación */}
+                {!esCliente && (
+                  <>
+                    <div className="space-y-1">
+                      <Label htmlFor="email" className="text-xs font-medium">Email <span className="text-destructive">*</span></Label>
+                      <Input id="email" type="email" value={formData.email}
+                        onChange={e => { setFormData(p => ({ ...p, email: e.target.value })); setFormErrors(p => ({ ...p, email: '' })); }}
+                        placeholder="usuario@email.com"
+                        className={`h-9 text-sm shadow-sm ${formErrors.email ? 'border-destructive' : ''}`} />
+                      {formErrors.email && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.email}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <Label htmlFor="phone" className="text-xs font-medium">Celular <span className="text-destructive">*</span></Label>
+                      <Input id="phone" value={formData.phone}
+                        onChange={e => { const val = e.target.value.replace(/\D/g, ''); setFormData(p => ({ ...p, phone: val })); setFormErrors(p => ({ ...p, phone: '' })); }}
+                        placeholder="3001234567" inputMode="numeric"
+                        className={`h-9 text-sm shadow-sm ${formErrors.phone ? 'border-destructive' : ''}`} />
+                      {formErrors.phone && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.phone}</p>}
+                    </div>
+                  </>
+                )}
+
+                {/* Rol — siempre visible */}
+                <div className="space-y-1">
+                  <Label htmlFor="role" className="text-xs font-medium">Rol <span className="text-destructive">*</span></Label>
+                  <Select value={formData.role}
+                    onValueChange={v => { setFormData(p => ({ ...p, role: v })); setFormErrors(p => ({ ...p, role: '' })); }}>
+                    <SelectTrigger id="role" className={`h-9 text-sm shadow-sm ${formErrors.role ? 'border-destructive' : ''}`}>
+                      <SelectValue placeholder="Seleccionar rol" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(apiRoles.length > 0 ? apiRoles.map(r => ({ value: r.name, label: r.name })) : AVAILABLE_ROLES).map(r => (
+                        <SelectItem key={r.value} value={r.value} className="text-sm">{r.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formErrors.role && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.role}</p>}
+                </div>
+
+                {/* Dirección + campos empleado — solo no-clientes o creación */}
+                {!esCliente && (
+                  <>
+                    <div className="space-y-1">
+                      <Label htmlFor="address" className="text-xs font-medium">Dirección</Label>
+                      <Input id="address" value={formData.address}
+                        onChange={e => setFormData(p => ({ ...p, address: e.target.value }))}
+                        placeholder="Calle 123 #45-67"
+                        className="h-9 text-sm shadow-sm" />
+                    </div>
+
+                    {/* Campos solo para empleados */}
+                    {['vendedor', 'bodega', 'contador', 'administrador'].includes((formData.role || '').toLowerCase()) && (
+                      <>
                         <div className="space-y-1">
-                          <Label htmlFor="birthDate" className="text-xs font-medium">Fecha nacimiento <span className="text-destructive">*</span></Label>
-                          <Input id="birthDate" type="date" value={formData.birthDate}
-                            onChange={e => { setFormData(p => ({ ...p, birthDate: e.target.value })); setFormErrors(p => ({ ...p, birthDate: '' })); }}
-                            max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
-                            required
-                            className={`h-9 text-sm shadow-sm ${formErrors.birthDate ? 'border-destructive' : ''}`} />
-                          {formErrors.birthDate
-                            ? <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.birthDate}</p>
-                            : <p className="text-xs text-muted-foreground">Debe ser mayor de 18 años</p>}
+                          <Label htmlFor="position" className="text-xs font-medium">Cargo <span className="text-destructive">*</span></Label>
+                          <Input id="position" value={formData.position}
+                            onChange={e => setFormData(p => ({ ...p, position: e.target.value }))}
+                            placeholder="Ej: Vendedor, Bodeguero..."
+                            className="h-9 text-sm shadow-sm" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label htmlFor="birthDate" className="text-xs font-medium">Fecha nacimiento <span className="text-destructive">*</span></Label>
+                            <Input id="birthDate" type="date" value={formData.birthDate}
+                              onChange={e => { setFormData(p => ({ ...p, birthDate: e.target.value })); setFormErrors(p => ({ ...p, birthDate: '' })); }}
+                              max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+                              className={`h-9 text-sm shadow-sm ${formErrors.birthDate ? 'border-destructive' : ''}`} />
+                            {formErrors.birthDate
+                              ? <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.birthDate}</p>
+                              : <p className="text-xs text-muted-foreground">Mayor de 18 años</p>}
+                          </div>
+                          <div className="space-y-1">
+                            <Label htmlFor="hireDate" className="text-xs font-medium">Fecha contratación <span className="text-destructive">*</span></Label>
+                            <Input id="hireDate" type="date" value={formData.hireDate}
+                              onChange={e => { setFormData(p => ({ ...p, hireDate: e.target.value })); setFormErrors(p => ({ ...p, hireDate: '' })); }}
+                              className={`h-9 text-sm shadow-sm ${formErrors.hireDate ? 'border-destructive' : ''}`} />
+                            {formErrors.hireDate && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.hireDate}</p>}
+                          </div>
                         </div>
                         <div className="space-y-1">
-                          <Label htmlFor="hireDate" className="text-xs font-medium">Fecha contratación <span className="text-destructive">*</span></Label>
-                          <Input id="hireDate" type="date" value={formData.hireDate}
-                            onChange={e => { setFormData(p => ({ ...p, hireDate: e.target.value })); setFormErrors(p => ({ ...p, hireDate: '' })); }}
-                            required
-                            className={`h-9 text-sm shadow-sm ${formErrors.hireDate ? 'border-destructive' : ''}`} />
-                          {formErrors.hireDate && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.hireDate}</p>}
+                          <Label htmlFor="salary" className="text-xs font-medium">Salario (COP) <span className="text-destructive">*</span></Label>
+                          <Input id="salary" type="number" min={0} value={formData.salary}
+                            onChange={e => { setFormData(p => ({ ...p, salary: e.target.value })); setFormErrors(p => ({ ...p, salary: '' })); }}
+                            placeholder="Ej: 2000000"
+                            className={`h-9 text-sm shadow-sm ${formErrors.salary ? 'border-destructive' : ''}`} />
+                          {formErrors.salary && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.salary}</p>}
                         </div>
+                      </>
+                    )}
+
+                    {/* Contraseña — solo no-clientes */}
+                    {isCreate ? (
+                      <div className="rounded-md bg-muted px-4 py-3 text-sm text-muted-foreground">
+                        La contraseña inicial será el número de documento ingresado.
                       </div>
-                      {/* Salario */}
-                      <div className="space-y-1">
-                        <Label htmlFor="salary" className="text-xs font-medium">Salario (COP) <span className="text-destructive">*</span></Label>
-                        <Input id="salary" type="number" min={0} value={formData.salary}
-                          onChange={e => { setFormData(p => ({ ...p, salary: e.target.value })); setFormErrors(p => ({ ...p, salary: '' })); }}
-                          placeholder="Ej: 2000000"
-                          required
-                          className={`h-9 text-sm shadow-sm ${formErrors.salary ? 'border-destructive' : ''}`} />
-                        {formErrors.salary && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.salary}</p>}
-                      </div>
-                    </>
-                  )}
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <Label htmlFor="pw" className="text-xs font-medium">Nueva Contraseña <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+                            <div className="relative">
+                              <Input id="pw" type={showPassword ? 'text' : 'password'} value={formData.password}
+                                onChange={e => { setFormData(p => ({ ...p, password: e.target.value })); setFormErrors(p => ({ ...p, password: '' })); }}
+                                placeholder="Mín. 8 caracteres"
+                                className={`h-9 text-sm shadow-sm pr-9 ${formErrors.password ? 'border-destructive' : ''}`} />
+                              <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
+                                onClick={() => setShowPassword(p => !p)}>
+                                {showPassword ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
+                              </Button>
+                            </div>
+                            {formErrors.password && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.password}</p>}
+                          </div>
+                          <div className="space-y-1">
+                            <Label htmlFor="cpw" className="text-xs font-medium">Confirmar</Label>
+                            <div className="relative">
+                              <Input id="cpw" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword}
+                                onChange={e => { setFormData(p => ({ ...p, confirmPassword: e.target.value })); setFormErrors(p => ({ ...p, confirmPassword: '' })); }}
+                                placeholder="Repite"
+                                className={`h-9 text-sm shadow-sm pr-9 ${formErrors.confirmPassword ? 'border-destructive' : ''}`} />
+                              <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
+                                onClick={() => setShowConfirmPassword(p => !p)}>
+                                {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
+                              </Button>
+                            </div>
+                            {formErrors.confirmPassword && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.confirmPassword}</p>}
+                            {formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 8 && (
+                              <p className="text-xs text-green-600">✓ Coinciden</p>
+                            )}
+                          </div>
+                        </div>
+                        <p className="text-xs text-amber-600 bg-amber-50 rounded px-3 py-1.5">
+                          ⚠ Ingresa una nueva contraseña para cambiarla.
+                        </p>
+                      </>
+                    )}
+                  </>
+                )}
+
+                {/* Estado — siempre visible */}
+                <div className="flex items-center justify-between rounded-lg border px-3 py-2 shadow-sm">
+                  <div>
+                    <p className="text-xs font-medium">Estado</p>
+                    <p className="text-xs text-muted-foreground">{formData.isActive ? 'Activo' : 'Inactivo'}</p>
+                  </div>
+                  <Switch checked={formData.isActive} onCheckedChange={v => setFormData(p => ({ ...p, isActive: v }))} />
+                </div>
+
+                {/* Botones */}
+                <div className="flex gap-2 pt-1">
+                  <Button onClick={handleSubmit} className="flex-1 h-9 text-sm">
+                    {isCreate ? <><Plus className="h-3.5 w-3.5 mr-1.5" />Guardar</> : <><Edit className="h-3.5 w-3.5 mr-1.5" />Actualizar</>}
+                  </Button>
+                  <Button variant="outline" onClick={cancel} className="flex-1 h-9 text-sm">Cancelar</Button>
+                </div>
                 </>
               );
             })()}
-
-            {/* Contraseña — solo visible si NO es cliente */}
-            {(() => {
-              const isCliente = (formData.role || '').toLowerCase() === 'cliente' || (formData.role || '').toLowerCase() === 'user';
-              if (isCliente) return null;
-              return isCreate ? (
-                <div className="rounded-md bg-muted px-4 py-3 text-sm text-muted-foreground">
-                  La contraseña inicial será el número de documento ingresado.
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="pw" className="text-xs font-medium">Nueva Contraseña <span className="text-muted-foreground font-normal">(opcional)</span></Label>
-                    <div className="relative">
-                      <Input id="pw" type={showPassword ? 'text' : 'password'} value={formData.password}
-                        onChange={e => { setFormData(p => ({ ...p, password: e.target.value })); setFormErrors(p => ({ ...p, password: '' })); }}
-                        placeholder="Mín. 8 caracteres"
-                        className={`h-9 text-sm shadow-sm pr-9 ${formErrors.password ? 'border-destructive' : ''}`} />
-                      <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
-                        onClick={() => setShowPassword(p => !p)}>
-                        {showPassword ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
-                      </Button>
-                    </div>
-                    {formErrors.password && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.password}</p>}
-                  </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="cpw" className="text-xs font-medium">Confirmar</Label>
-                    <div className="relative">
-                      <Input id="cpw" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword}
-                        onChange={e => { setFormData(p => ({ ...p, confirmPassword: e.target.value })); setFormErrors(p => ({ ...p, confirmPassword: '' })); }}
-                        placeholder="Repite"
-                        className={`h-9 text-sm shadow-sm pr-9 ${formErrors.confirmPassword ? 'border-destructive' : ''}`} />
-                      <Button type="button" variant="ghost" size="sm" className="absolute right-0 top-0 h-full px-2.5 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(p => !p)}>
-                        {showConfirmPassword ? <EyeOff className="h-3.5 w-3.5 text-muted-foreground" /> : <Eye className="h-3.5 w-3.5 text-muted-foreground" />}
-                      </Button>
-                    </div>
-                    {formErrors.confirmPassword && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.confirmPassword}</p>}
-                    {formData.confirmPassword && formData.password === formData.confirmPassword && formData.password.length >= 8 && (
-                      <p className="text-xs text-green-600">✓ Coinciden</p>
-                    )}
-                  </div>
-                </div>
-              );
-            })()}            {/* Estado */}
-            <div className="flex items-center justify-between rounded-lg border px-3 py-2 shadow-sm">
-              <div>
-                <p className="text-xs font-medium">Estado</p>
-                <p className="text-xs text-muted-foreground">{formData.isActive ? 'Activo' : 'Inactivo'}</p>
-              </div>
-              <Switch checked={formData.isActive} onCheckedChange={v => setFormData(p => ({ ...p, isActive: v }))} />
-            </div>
-
-            {!isCreate && (
-              <p className="text-xs text-amber-600 bg-amber-50 rounded px-3 py-1.5">
-                ⚠ Ingresa una nueva contraseña para cambiarla.
-              </p>
-            )}
-
-            {/* Botones */}
-            <div className="flex gap-2 pt-1">
-              <Button onClick={handleSubmit} className="flex-1 h-9 text-sm">
-                {isCreate ? <><Plus className="h-3.5 w-3.5 mr-1.5" />Guardar</> : <><Edit className="h-3.5 w-3.5 mr-1.5" />Actualizar</>}
-              </Button>
-              <Button variant="outline" onClick={cancel} className="flex-1 h-9 text-sm">Cancelar</Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 
   const tableColumns: Column<User>[] = [
