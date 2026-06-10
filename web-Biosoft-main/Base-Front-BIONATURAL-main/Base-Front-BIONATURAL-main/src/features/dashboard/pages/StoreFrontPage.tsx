@@ -112,6 +112,13 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#FAFAF8', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif', padding: '0 24px 64px' }}>
+      <style>{`
+        @media (max-width: 500px) {
+          .storefront-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .storefront-card { width: 100% !important; min-width: unset !important; max-width: unset !important; height: auto !important; }
+          .storefront-card-img { height: 140px !important; }
+        }
+      `}</style>
       <div style={{ maxWidth: 1200, margin: '40px auto 0', width: '100%' }}>
 
         {/* HERO */}
@@ -276,20 +283,24 @@ export function ClientStorefront({ isFavorite, toggleFavorite, userName }: {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 220px)', gap: 20, justifyContent: 'center' }}>
+          <div className="storefront-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 220px)', gap: 20, justifyContent: 'center' }}>
             {loading ? (
               [...Array(8)].map((_, i) => <div key={i} style={{ width: 220, height: 360, backgroundColor: '#F4F4F2', borderRadius: 16, animation: 'pulse 1.5s infinite' }} />)
             ) : filtered.map(product => {
               const fav = isFavorite(product.id);
               return (
                 <div key={product.id} onClick={() => { setSelectedProduct(product); setIsProductModalOpen(true); }}
+                  className="storefront-card"
                   style={{ width: 220, height: 360, borderRadius: 16, border: '1px solid #E5E5E2', backgroundColor: 'white', overflow: 'hidden', cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ position: 'relative', height: 180, backgroundColor: '#F4F4F2', flexShrink: 0 }}>
+                  <div className="storefront-card-img" style={{ position: 'relative', height: 180, backgroundColor: '#F4F4F2', flexShrink: 0 }}>
                     {product.image ? (
                       <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
-                      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Leaf className="w-10 h-10 text-green-100" />
+                      <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #E8F5E9 0%, #F0FDF4 100%)', gap: 8 }}>
+                        <div style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: 'rgba(58,125,68,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Leaf style={{ width: 26, height: 26, color: '#3A7D44', opacity: 0.7 }} />
+                        </div>
+                        <span style={{ fontSize: 10, color: '#3A7D44', fontWeight: 600, opacity: 0.6, textAlign: 'center', padding: '0 12px' }}>{product.category}</span>
                       </div>
                     )}
                     <button onClick={e => { e.stopPropagation(); toggleFavorite(product); }}

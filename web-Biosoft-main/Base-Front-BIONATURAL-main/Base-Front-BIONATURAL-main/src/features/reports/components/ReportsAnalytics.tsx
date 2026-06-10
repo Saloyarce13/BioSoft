@@ -721,6 +721,35 @@ export function ReportsAnalytics() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
+          {/* Botón exportar CSV */}
+          <Button variant="outline" size="sm" onClick={() => {
+            try {
+              let csv = '';
+              let filename = 'reporte';
+              if (selectedReport === 'sales' || selectedReport === 'dashboard') {
+                csv = 'Semana,Ventas,Ingresos\n' + weeklySalesData.map(r => `${r.semana || r.week || r.name || ''},${r.ventas || r.sales || 0},${r.ingresos || r.revenue || 0}`).join('\n');
+                filename = 'ventas-semanales';
+              } else if (selectedReport === 'clients') {
+                csv = 'Nombre,Email,Teléfono\n' + uniqueClients.map(c => `"${c.name}","${c.email || ''}","${c.phone || ''}"`).join('\n');
+                filename = 'clientes';
+              } else if (selectedReport === 'inventory') {
+                csv = 'Producto,Categoría,Stock\n' + stockProducts.map(p => `"${p.name}","${p.category?.name || ''}",${p.stock}`).join('\n');
+                filename = 'inventario';
+              } else if (selectedReport === 'suppliers') {
+                csv = 'Proveedor,Email,Teléfono\n' + activeProviders.map(p => `"${p.name}","${p.email || ''}","${p.phone || ''}"`).join('\n');
+                filename = 'proveedores';
+              }
+              if (!csv) { csv = 'Sin datos disponibles'; }
+              const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url; a.download = `${filename}-${new Date().toISOString().split('T')[0]}.csv`;
+              a.click(); URL.revokeObjectURL(url);
+            } catch { }
+          }}>
+            <Download className="h-4 w-4 mr-2" />
+            Exportar CSV
+          </Button>
           <Select value={selectedReport} onValueChange={setSelectedReport}>
             <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Seleccionar vista" />
@@ -735,9 +764,7 @@ export function ReportsAnalytics() {
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      {statsError && (
+      </div>      {statsError && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {statsError}
         </div>
