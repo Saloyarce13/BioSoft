@@ -88,7 +88,7 @@ const register = async (req, res) => {
       return res.status(400).json({ success: false, message: emailCheck.message });
     }
 
-    // Verificar si el email ya existe
+    // Verificar si el email ya existe en users
     const existingUser = await prisma.user.findUnique({
       where: { email }
     });
@@ -98,6 +98,13 @@ const register = async (req, res) => {
         success: false,
         message: 'Ya existe una cuenta con este correo electrónico'
       });
+    }
+
+    // Verificar si ya existe como cliente (pero sin cuenta de usuario)
+    const existingClient = await prisma.client.findUnique({ where: { email } });
+    if (existingClient) {
+      // Tiene registro en clients pero no en users — se puede registrar, solo informamos
+      logger.info(`Register: email ${email} exists in clients but not in users — proceeding`);
     }
 
     // Encriptar contraseña
@@ -350,8 +357,8 @@ const updateProfile = async (req, res) => {
   try {
     const updateSchema = z.object({
       name: z.string().min(2).max(100).optional(),
-      phone: z.string().optional(),
-      address: z.string().optional()
+      phone: z.string().optional().nullable(),
+      address: z.string().optional().nullable()
     });
 
     const parsed = validate(updateSchema, req.body);
@@ -361,13 +368,15 @@ const updateProfile = async (req, res) => {
 
     const { name, phone, address } = parsed.data;
 
+    // Construir el objeto de actualización manejando null para borrar campos
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (phone !== undefined) updateData.phone = phone || null; // permite borrar con null
+    if (address !== undefined) updateData.address = address || null; // permite borrar con null
+
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
-      data: {
-        name: name || undefined,
-        phone: phone || undefined,
-        address: address || undefined
-      },
+      data: updateData,
       select: {
         id: true,
         name: true,
@@ -387,6 +396,18 @@ const updateProfile = async (req, res) => {
     });
 
     logger.info(`Profile updated for user: ${updatedUser.email}`);
+
+    // Mejora 12: Renovar el JWT con el nombre actualizado
+    const { generateToken } = require('../middleware/auth');
+    const newToken = generateToken(updatedUser.id);
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('authToken', newToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      path: '/',
+      maxAge: 24 * 60 * 60 * 1000,
+    });
 
     return res.status(200).json({
       success: true,

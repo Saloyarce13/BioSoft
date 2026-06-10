@@ -1,5 +1,5 @@
 const { z } = require('zod');
-const { sendOrderCancelledEmail, sendOrderReadyEmail } = require('../services/email.service');
+const { sendOrderCancelledEmail, sendOrderReadyEmail, sendOrderConfirmEmail } = require('../services/email.service');
 const { checkAndCancelLowStockOrders } = require('../lib/stockChecker');
 const prisma = require('../lib/prisma');
 const { validate } = require('../lib/validate');
@@ -670,6 +670,22 @@ const createMyOrder = async (req, res) => {
       where: { id: sale.id },
       include: { client: true, items: { include: { product: true } } },
     });
+
+    // Enviar email de confirmación al cliente
+    if (saleFull?.client?.email) {
+      sendOrderConfirmEmail({
+        to: saleFull.client.email,
+        clientName: saleFull.client.name,
+        orderId: sale.id,
+        items: (saleFull.items || []).map(i => ({
+          name: i.product?.name || 'Producto',
+          quantity: i.quantity,
+          lineTotal: i.lineTotal,
+        })),
+        total: saleFull.totalPrice,
+        pickupTime: parsed.data.pickupTime || null,
+      }).catch(err => console.warn('[EMAIL CONFIRMACIÓN]', err?.message));
+    }
 
     return res.status(201).json({ success: true, message: 'Pedido registrado correctamente. Tienes 24 horas para recogerlo en tienda.', data: saleFull });
   } catch (error) {
