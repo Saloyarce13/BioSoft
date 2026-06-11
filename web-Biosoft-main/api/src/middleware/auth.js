@@ -187,8 +187,8 @@ const optionalAuth = async (req, res, next) => {
   next();
 };
 
-// Generar token JWT
-const generateToken = (userId, expiresIn = '24h') => {
+// Generar token JWT — 7 días para compatibilidad web + móvil
+const generateToken = (userId, expiresIn = '7d') => {
   return jwt.sign(
     { userId, timestamp: Date.now() },
     JWT_SECRET,
