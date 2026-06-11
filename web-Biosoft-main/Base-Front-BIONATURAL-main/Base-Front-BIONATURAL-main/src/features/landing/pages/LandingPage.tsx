@@ -44,7 +44,7 @@ function HeroCarousel({ products, onLoginOpen, onRegisterOpen }: { products: { i
   const bgSrc = images.length > 0 ? images[current % images.length].src : 'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=1400&q=80';
 
   return (
-    <section style={{ position: 'relative', height: 580, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <section className="landing-hero" style={{ position: 'relative', height: 580, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {/* Imagen de fondo — cambia automáticamente */}
       <img key={bgSrc} src={bgSrc} alt="Producto"
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', animation: 'heroFade 0.8s ease-in-out', transition: 'opacity 0.8s' }}
@@ -142,6 +142,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen, onRegiste
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#FAFAF8', display: 'flex', flexDirection: 'column', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      <style>{`
+        @media (max-width: 600px) {
+          .landing-hero { height: 420px !important; }
+          .landing-hero h1 { font-size: 32px !important; }
+          .landing-grid { grid-template-columns: repeat(2, 1fr) !important; }
+          .landing-card { width: 100% !important; min-width: unset !important; max-width: unset !important; }
+          .landing-header-nav { gap: 6px !important; }
+        }
+      `}</style>
 
       {/* ══ HEADER ══ */}
       <header style={{
@@ -162,7 +171,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen, onRegiste
             </div>
           </div>
           {/* Nav */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }} className="landing-header-nav">
             <button
               onClick={() => onLoginOpen?.()}
               style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #E5E5E2', backgroundColor: 'white', fontSize: 13, fontWeight: 500, color: '#1C1C1A', cursor: 'pointer' }}
@@ -360,7 +369,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen, onRegiste
 
           {/* Grid */}
           {loading ? (
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${LANDING_CARD_WIDTH}px, ${LANDING_CARD_WIDTH}px))`, gap: 20, justifyContent: 'center' }}>
+            <div className="landing-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${LANDING_CARD_WIDTH}px, ${LANDING_CARD_WIDTH}px))`, gap: 20, justifyContent: 'center' }}>
               {Array.from({ length: 8 }).map((_, i) => (
                 <div key={i} style={{ borderRadius: 16, border: '1px solid #E5E5E2', backgroundColor: 'white', overflow: 'hidden' }}>
                   <div style={{ aspectRatio: '1', backgroundColor: '#F4F4F2', animation: 'pulse 1.5s infinite' }} />
@@ -385,11 +394,12 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onLoginOpen, onRegiste
               )}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${LANDING_CARD_WIDTH}px, ${LANDING_CARD_WIDTH}px))`, gap: 20, justifyContent: 'center' }}>
+            <div className="landing-grid" style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${LANDING_CARD_WIDTH}px, ${LANDING_CARD_WIDTH}px))`, gap: 20, justifyContent: 'center' }}>
               {filteredProducts.map(product => (
                 <div
                   key={product.id}
                   onClick={handleBuy}
+                  className="landing-card"
                   style={{ width: LANDING_CARD_WIDTH, minWidth: LANDING_CARD_WIDTH, maxWidth: LANDING_CARD_WIDTH, height: LANDING_CARD_HEIGHT, borderRadius: 16, border: '1px solid #E5E5E2', backgroundColor: 'white', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.18s ease, box-shadow 0.18s ease', boxShadow: '0 1px 4px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}
                   onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-4px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)'; }}
                   onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 1px 4px rgba(0,0,0,0.05)'; }}

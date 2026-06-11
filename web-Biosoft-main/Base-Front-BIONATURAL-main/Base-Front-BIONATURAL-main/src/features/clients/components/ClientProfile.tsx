@@ -122,6 +122,11 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
 
   return (
     <div style={{ fontFamily: 'Inter, system-ui, sans-serif', maxWidth: 1280, margin: '0 auto' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .profile-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
 
       {/* Banner — igual al de la tienda */}
       <div style={{ position: 'relative', borderRadius: 20, overflow: 'hidden', height: 180, marginBottom: 28, background: 'linear-gradient(135deg, #1B4332 0%, #2D6A4F 50%, #3A7D44 100%)' }}>
@@ -153,7 +158,7 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
           <span style={{ fontSize: 14 }}>Cargando perfil...</span>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+        <div className="profile-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
           {/* Columna izquierda */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>

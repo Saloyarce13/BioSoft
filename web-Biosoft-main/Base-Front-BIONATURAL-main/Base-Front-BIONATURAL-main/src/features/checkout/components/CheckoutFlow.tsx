@@ -154,6 +154,13 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
         </div>
       )}
 
+      <style>{`
+        @media (max-width: 768px) {
+          .checkout-grid { grid-template-columns: 1fr !important; }
+          .checkout-summary-sticky { position: static !important; }
+        }
+      `}</style>
+
       <div style={{ maxWidth: 900, margin: '0 auto', padding: '28px 24px 40px' }}>
 
         {/* ── Paso 1: Login / Registro ── */}
@@ -234,7 +241,7 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
 
         {/* ── Paso 2: Retiro en tienda ── */}
         {step === 'pickup' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'start' }}>
+          <div className="checkout-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 24, alignItems: 'start' }}>
 
             {/* Columna izquierda — formulario */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -311,7 +318,7 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
             </div>
 
             {/* Columna derecha — resumen sticky */}
-            <div style={{ position: 'sticky', top: 20 }}>
+            <div className="checkout-summary-sticky" style={{ position: 'sticky', top: 20 }}>
               <div style={{ backgroundColor: 'white', borderRadius: 16, border: '1px solid #E5E5E2', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                 <div style={{ padding: '14px 18px', borderBottom: '1px solid #F0F0EE' }}>
                   <p style={{ fontSize: 11, fontWeight: 700, color: '#737370', textTransform: 'uppercase' as const, letterSpacing: '0.06em', margin: 0 }}>Resumen del pedido</p>

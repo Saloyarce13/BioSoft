@@ -71,7 +71,7 @@ type StockProduct = {
   category?: { id: number; name: string };
 };
 
-export function ReportsAnalytics() {
+export function ReportsAnalytics(): JSX.Element {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedReport, setSelectedReport] = useState('dashboard');
@@ -290,19 +290,13 @@ export function ReportsAnalytics() {
   const renderTopProductsComparison = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Comparativa Semanal vs Mensual</CardTitle>
-        <CardDescription>Rendimiento de productos top en diferentes períodos</CardDescription>
+        <CardTitle>Ventas semanales — Detalle</CardTitle>
+        <CardDescription>Ventas e ingresos de las últimas 8 semanas</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart
-            data={[
-              { producto: 'Té Verde', semanal: 34, mensual: 145 },
-              { producto: 'Aceite Lavanda', semanal: 22, mensual: 89 },
-              { producto: 'Vitamina C', semanal: 18, mensual: 76 },
-              { producto: 'Cúrcuma', semanal: 15, mensual: 132 },
-              { producto: 'Hierba S.J.', semanal: 12, mensual: 98 }
-            ]}
+            data={weeklySalesData}
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -334,15 +328,15 @@ export function ReportsAnalytics() {
             />
             <Legend />
             <Bar 
-              dataKey="semanal" 
-              fill={CHART_COLORS.accent} 
-              name="Esta Semana"
+              dataKey="ventas" 
+              fill={CHART_COLORS.primary} 
+              name="Ventas ($)"
               radius={[2, 2, 0, 0]}
             />
             <Bar 
-              dataKey="mensual" 
-              fill={CHART_COLORS.primary} 
-              name="Este Mes"
+              dataKey="transacciones" 
+              fill={CHART_COLORS.accent} 
+              name="Transacciones"
               radius={[2, 2, 0, 0]}
             />
           </BarChart>
@@ -354,69 +348,19 @@ export function ReportsAnalytics() {
   const renderProductTrends = () => (
     <Card>
       <CardHeader>
-        <CardTitle>Tendencia de Productos Top</CardTitle>
-        <CardDescription>Evolución de ventas de los 3 productos más populares</CardDescription>
+        <CardTitle>Ventas por Categoría — Detalle</CardTitle>
+        <CardDescription>Cantidad de unidades vendidas por categoría</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart
-            data={[
-              { semana: 'S1', 'Té Verde': 28, 'Aceite Lavanda': 18, 'Vitamina C': 15 },
-              { semana: 'S2', 'Té Verde': 32, 'Aceite Lavanda': 20, 'Vitamina C': 16 },
-              { semana: 'S3', 'Té Verde': 29, 'Aceite Lavanda': 22, 'Vitamina C': 14 },
-              { semana: 'S4', 'Té Verde': 34, 'Aceite Lavanda': 22, 'Vitamina C': 18 },
-              { semana: 'S5', 'Té Verde': 31, 'Aceite Lavanda': 19, 'Vitamina C': 17 },
-              { semana: 'S6', 'Té Verde': 36, 'Aceite Lavanda': 25, 'Vitamina C': 19 },
-            ]}
-            margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-          >
+          <BarChart data={categoryPerfData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-            <XAxis 
-              dataKey="semana" 
-              tick={{ fill: '#666' }}
-              tickLine={{ stroke: '#666' }}
-              axisLine={{ stroke: '#666' }}
-            />
-            <YAxis 
-              tick={{ fill: '#666' }}
-              tickLine={{ stroke: '#666' }}
-              axisLine={{ stroke: '#666' }}
-            />
-            <Tooltip 
-              formatter={(value, name) => [`${value} ventas`, name]}
-              contentStyle={{
-                backgroundColor: 'white',
-                border: `2px solid ${CHART_COLORS.primary}`,
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-              }}
-            />
+            <XAxis dataKey="categoria" tick={{ fill: '#666', fontSize: 11 }} />
+            <YAxis tick={{ fill: '#666' }} />
+            <Tooltip formatter={(value: any, name: string) => [value, name === 'ventas' ? 'Unidades vendidas' : name]} />
             <Legend />
-            <Line 
-              type="monotone" 
-              dataKey="Té Verde" 
-              stroke={CHART_COLORS.primary} 
-              strokeWidth={3}
-              dot={{ fill: CHART_COLORS.primary, strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, fill: CHART_COLORS.primary }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="Aceite Lavanda" 
-              stroke={CHART_COLORS.secondary} 
-              strokeWidth={3}
-              dot={{ fill: CHART_COLORS.secondary, strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, fill: CHART_COLORS.secondary }}
-            />
-            <Line 
-              type="monotone" 
-              dataKey="Vitamina C" 
-              stroke={CHART_COLORS.accent} 
-              strokeWidth={3}
-              dot={{ fill: CHART_COLORS.accent, strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, fill: CHART_COLORS.accent }}
-            />
-          </LineChart>
+            <Bar dataKey="ventas" fill={CHART_COLORS.primary} name="Unidades vendidas" radius={[4, 4, 0, 0]} />
+          </BarChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

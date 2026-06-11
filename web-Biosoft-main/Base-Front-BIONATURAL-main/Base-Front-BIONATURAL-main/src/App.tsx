@@ -483,7 +483,7 @@ export default function App() {
 
   const renderContent = () => {
     switch (currentView) {
-      case 'landing':   return <LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} onRegisterOpen={() => setCurrentView('register')} />;
+      case 'landing':   return <LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} />;
       case 'home':
       case 'dashboard':
       case 'reports':   return <DashboardReportsView />;
