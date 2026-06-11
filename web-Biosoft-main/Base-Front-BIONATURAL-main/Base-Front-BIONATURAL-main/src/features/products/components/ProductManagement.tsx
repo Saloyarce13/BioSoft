@@ -413,9 +413,6 @@ export function ProductManagement({
     }
     if (formData.stock && parseInt(formData.stock) < 0) { toast.error('El stock no puede ser negativo'); return; }
     if (formData.minStock && parseInt(formData.minStock) < 0) { toast.error('El stock mínimo no puede ser negativo'); return; }
-    if (formData.stock && formData.minStock && parseInt(formData.minStock) > parseInt(formData.stock)) {
-      toast.error('El stock mínimo no puede ser mayor al stock actual'); return;
-    }
 
     try {
       const productData = {
@@ -493,9 +490,6 @@ export function ProductManagement({
     }
     if (formData.stock && parseInt(formData.stock) < 0) { toast.error('El stock no puede ser negativo'); return; }
     if (formData.minStock && parseInt(formData.minStock) < 0) { toast.error('El stock mínimo no puede ser negativo'); return; }
-    if (formData.stock && formData.minStock && parseInt(formData.minStock) > parseInt(formData.stock)) {
-      toast.error('El stock mínimo no puede ser mayor al stock actual'); return;
-    }
 
     try {
       const productData = {
