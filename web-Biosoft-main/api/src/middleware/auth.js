@@ -28,7 +28,6 @@ const extractTokenFromRequest = (req) => {
 
 // Middleware para verificar token JWT
 const authenticateToken = async (req, res, next) => {
-  console.log(`DEBUG AUTH: ${req.method} ${req.originalUrl}`);
   try {
     const token = extractTokenFromRequest(req);
 
@@ -76,6 +75,23 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
+    // Auto-renovar token si expira en menos de 2 días
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = decoded.exp;
+    const twoDays = 2 * 24 * 60 * 60;
+    if (expiresAt && (expiresAt - now) < twoDays) {
+      const newToken = generateToken(user.id);
+      const isProd = process.env.NODE_ENV === 'production';
+      res.cookie(AUTH_COOKIE_NAME, newToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+      res.setHeader('X-New-Token', newToken);
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -91,7 +107,7 @@ const authenticateToken = async (req, res, next) => {
     if (error.name === 'TokenExpiredError') {
       return res.status(401).json({ 
         success: false, 
-        message: 'Token expirado' 
+        message: 'Sesión expirada. Por favor inicia sesión nuevamente.' 
       });
     }
 

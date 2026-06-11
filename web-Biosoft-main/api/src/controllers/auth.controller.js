@@ -30,12 +30,9 @@ const getAuthCookieOptions = () => {
   return {
     httpOnly: true,
     secure: isProd,
-    // En producción con frontend y API en dominios distintos se necesita 'none'
-    // para que el navegador envíe la cookie en peticiones cross-site.
-    // 'none' requiere secure: true (HTTPS), por eso solo aplica en producción.
     sameSite: isProd ? 'none' : 'lax',
     path: '/',
-    maxAge: 24 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días — compatible con web y móvil
   };
 };
 
