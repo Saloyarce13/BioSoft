@@ -178,7 +178,8 @@ const register = async (req, res) => {
       message: 'Usuario registrado exitosamente',
       data: {
         user,
-        expiresIn: '24h'
+        token: generateToken(user.id), // ← para app móvil
+        expiresIn: '7d'
       }
     });
 
@@ -277,7 +278,8 @@ const login = async (req, res) => {
       message: 'Inicio de sesión exitoso',
       data: {
         user: userWithoutPassword,
-        expiresIn: '24h'
+        token,        // ← incluido para app móvil (Bearer token)
+        expiresIn: '7d'
       }
     });
 
@@ -594,7 +596,8 @@ const demoLogin = async (req, res) => {
       message: `Acceso demo como ${type} exitoso`,
       data: {
         user: fullUser,
-        expiresIn: '24h',
+        token,        // ← para app móvil
+        expiresIn: '7d',
         isDemoUser: true
       }
     });
