@@ -317,6 +317,8 @@ export default function App() {
 
   React.useEffect(() => {
     if (user) return;
+    // No llamar auth/me en login/landing — evita el 401 en consola
+    if (currentView === 'login' || currentView === 'landing' || currentView === 'register') return;
     // Si el usuario hizo logout intencionalmente, no restaurar la sesión
     if (sessionStorage.getItem('logged_out') === '1') return;
     apiFetch<any>('/auth/me', { ignoreAuthError: true })

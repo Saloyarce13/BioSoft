@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SidebarTrigger } from '../../../components/ui/sidebar';
-import { Leaf, ChevronDown } from 'lucide-react';
+import { Leaf, ChevronDown, LogOut } from 'lucide-react';
 
 interface AppHeaderProps {
   user: { name: string; email: string; role: string; permissions?: string[] };
@@ -23,6 +23,7 @@ function getInitials(name: string) {
 
 export function AppHeader({ user, onLogout, onUserSidebarOpen }: AppHeaderProps) {
   const roleStyle = ROLE_STYLES[user.role] || { bg: '#F4F4F2', color: '#737370', border: '#E5E5E2' };
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   return (
     <header style={{
@@ -51,13 +52,15 @@ export function AppHeader({ user, onLogout, onUserSidebarOpen }: AppHeaderProps)
 
         {/* Derecha: usuario */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {/* Botón cerrar sesión — gris neutro con confirmación */}
           <button
-            onClick={onLogout}
+            onClick={() => setConfirmLogout(true)}
             aria-label="Cerrar sesión"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 8, height: 38, padding: '0 14px', borderRadius: 10, border: '1px solid #FECACA', backgroundColor: '#FEF2F2', color: '#DC2626', fontSize: 13, fontWeight: 600, cursor: 'pointer', transition: 'background 0.15s' }}
-            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#FEE2E2')}
-            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#FEF2F2')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 6, height: 38, padding: '0 14px', borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', color: '#737370', fontSize: 13, fontWeight: 500, cursor: 'pointer', transition: 'background 0.15s' }}
+            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#F4F4F2')}
+            onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'white')}
           >
+            <LogOut style={{ width: 14, height: 14 }} />
             <span>Cerrar sesión</span>
           </button>
           <button
@@ -80,6 +83,33 @@ export function AppHeader({ user, onLogout, onUserSidebarOpen }: AppHeaderProps)
           </button>
         </div>
       </div>
+
+      {/* Diálogo de confirmación de logout */}
+      {confirmLogout && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ backgroundColor: 'white', borderRadius: 16, padding: '28px 32px', maxWidth: 360, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.15)', textAlign: 'center' }}>
+            <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: '#F4F4F2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <LogOut style={{ width: 22, height: 22, color: '#737370' }} />
+            </div>
+            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1A', margin: '0 0 8px' }}>¿Cerrar sesión?</h3>
+            <p style={{ fontSize: 13, color: '#737370', margin: '0 0 24px', lineHeight: 1.5 }}>Tu sesión se cerrará y deberás volver a iniciar sesión para acceder.</p>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setConfirmLogout(false)}
+                style={{ flex: 1, height: 40, borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => { setConfirmLogout(false); onLogout?.(); }}
+                style={{ flex: 1, height: 40, borderRadius: 10, border: 'none', backgroundColor: '#374151', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }
