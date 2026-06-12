@@ -203,6 +203,8 @@ export default function App() {
   };
 
   const handleLogin = (userData: { name: string; email: string; role: string; permissions?: string[] }) => {
+    // Limpiar flag de logout para permitir restauración de sesión en futuros recargas
+    sessionStorage.removeItem('logged_out');
     const normalizedRole = normalizeRole(userData.role);
     const normalized = { ...userData, role: normalizedRole, permissions: userData.permissions || [] };
     setUser(normalized);
@@ -224,6 +226,8 @@ export default function App() {
     } catch {
       // Si el token ya expiró, limpiamos estado local igualmente.
     }
+    // Marcar sesión como cerrada intencionalmente para que no se restaure automáticamente
+    sessionStorage.setItem('logged_out', '1');
     setUser(null);
     setCurrentView('landing');
     setLandingKey(k => k + 1);
@@ -313,6 +317,8 @@ export default function App() {
 
   React.useEffect(() => {
     if (user) return;
+    // Si el usuario hizo logout intencionalmente, no restaurar la sesión
+    if (sessionStorage.getItem('logged_out') === '1') return;
     apiFetch<any>('/auth/me', { ignoreAuthError: true })
       .then(res => {
         if (res.success) {

@@ -41,7 +41,15 @@ const attachAuthCookie = (res, token) => {
 };
 
 const clearAuthCookie = (res) => {
-  res.clearCookie(AUTH_COOKIE_NAME, { path: '/' });
+  // IMPORTANTE: clearCookie debe usar las mismas opciones que setCookie
+  // Si sameSite/secure no coinciden, el navegador no borra la cookie
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie(AUTH_COOKIE_NAME, {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    path: '/',
+  });
 };
 
 // Schemas de validación
@@ -185,6 +193,13 @@ const register = async (req, res) => {
 
   } catch (error) {
     logger.error('Registration error:', error);
+    // Manejar violación de constraint único (email duplicado por race condition)
+    if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
+      return res.status(409).json({
+        success: false,
+        message: 'Ya existe una cuenta con este correo electrónico'
+      });
+    }
     return res.status(500).json({
       success: false,
       message: 'Error interno del servidor'
