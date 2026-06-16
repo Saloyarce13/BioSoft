@@ -5,8 +5,8 @@ const { validate } = require('../lib/validate');
 const { validateEmailExists } = require('../lib/validateEmail');
 
 // Regex de validaciones
-const DOC_NUMBER_REGEX = /^\d{8,15}$/; // 8-15 dígitos numéricos
-const PHONE_REGEX      = /^\+?\d{10,20}$/; // 10-20 dígitos, permite '+' al inicio
+const DOC_NUMBER_REGEX = /^\d{8,20}$/; // 8-20 dígitos numéricos
+const PHONE_REGEX      = /^\+?\d{7,30}$/; // 7-30 dígitos, permite '+' al inicio
 
 // Tipos de documento válidos (alineados con el frontend)
 const VALID_DOC_TYPES = ['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA'];
@@ -18,7 +18,8 @@ const createClientSchema = z.object({
   address:        z.string().max(250).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   documentNumber: z.string()
-    .regex(DOC_NUMBER_REGEX, 'El número de documento debe tener entre 8 y 15 dígitos numéricos')
+    .regex(DOC_NUMBER_REGEX, 'El número de documento debe tener entre 8 y 20 dígitos numéricos')
+    .max(20)
     .optional()
     .or(z.literal(''))
     .transform(v => v === '' ? undefined : v),
@@ -27,12 +28,12 @@ const createClientSchema = z.object({
 const updateClientSchema = z.object({
   name:           z.string().min(2).max(150).optional(),
   email:          z.string().email().optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
-  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)').max(20).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   address:        z.string().max(250).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   documentNumber: z.string()
-    .regex(DOC_NUMBER_REGEX, 'El número de documento debe tener entre 8 y 15 dígitos numéricos')
-    .optional()
+    .regex(DOC_NUMBER_REGEX, 'El número de documento debe tener entre 8 y 20 dígitos numéricos')
+    .max(20)
     .or(z.literal(''))
     .transform(v => v === '' ? undefined : v),
   isActive:       z.coerce.boolean().optional(),
@@ -173,8 +174,22 @@ const update = async (req, res) => {
       if (existing) return res.status(409).json({ success: false, message: 'Este email de cliente ya existe' });
     }
     if (documentNumber && documentNumber !== client.documentNumber) {
+      // El número de documento solo puede cambiar si también cambia el tipo de documento
+      if (!documentType || documentType === client.documentType) {
+        return res.status(400).json({
+          success: false,
+          message: 'El número de documento no puede modificarse sin cambiar también el tipo de documento'
+        });
+      }
       const existingDoc = await prisma.client.findFirst({ where: { documentNumber, NOT: { id: clientId } } });
       if (existingDoc) return res.status(409).json({ success: false, message: 'Ya existe un cliente con este número de documento' });
+    }
+    // Si solo cambia el tipo de documento, no se permite
+    if (documentType && documentType !== client.documentType && !documentNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Para cambiar el tipo de documento también debe proporcionar el nuevo número de documento'
+      });
     }
 
     const updated = await prisma.$transaction(async (tx) => {

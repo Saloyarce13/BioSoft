@@ -5,8 +5,8 @@ const { validate } = require('../lib/validate');
 const { validateEmailExists } = require('../lib/validateEmail');
 
 // Regex de validaciones
-const PHONE_REGEX = /^\+?\d{10,20}$/; // 10-20 dígitos, permite '+' al inicio
-const DOC_REGEX   = /^\d{8,15}$/;                                 // 8-15 dígitos numéricos
+const PHONE_REGEX = /^\+?\d{7,30}$/; // 7-30 dígitos, permite '+' al inicio
+const DOC_REGEX   = /^\d{8,20}$/;     // 8-20 dígitos numéricos
 const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/; // mayúscula + número + especial
 
 // Tipos de documento válidos (alineados con frontend y otros controladores)
@@ -42,10 +42,10 @@ const createEmployeeSchema = z.object({
 const updateEmployeeSchema = z.object({
   fullName:       z.string().min(2).max(120).optional(),
   email:          z.string().email().optional(),
-  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)').max(30).optional().nullable(),
+  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().nullable(),
   documentType:   z.enum(['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA']).optional().nullable(),
   documentNumber: z.string()
-    .min(8).max(15)
+    .min(8).max(20)
     .regex(/^\d+$/, 'Solo se aceptan caracteres numéricos')
     .optional().nullable(),
   address:        z.string().max(250).optional().nullable(),
@@ -215,8 +215,22 @@ const update = async (req, res) => {
 
     // Validar documento duplicado al editar (ignorar el propio registro)
     if (documentNumber && documentNumber !== employee.documentNumber) {
+      // El número de documento solo puede cambiar si también cambia el tipo de documento
+      if (!documentType || documentType === employee.documentType) {
+        return res.status(400).json({
+          success: false,
+          message: 'El número de documento no puede modificarse sin cambiar también el tipo de documento'
+        });
+      }
       const existingDoc = await prisma.employee.findFirst({ where: { documentNumber, NOT: { id: employeeId } } });
       if (existingDoc) return res.status(409).json({ success: false, message: 'Ya existe un empleado con este número de documento' });
+    }
+    // Si solo cambia el tipo de documento, no se permite
+    if (documentType && documentType !== employee.documentType && !documentNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Para cambiar el tipo de documento también debe proporcionar el nuevo número de documento'
+      });
     }
 
     const updateData = {

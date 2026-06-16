@@ -5,7 +5,7 @@ const { sequelize } = require('../config/database');
 
 /*
   Tabla: clients
-  Columnas: id, name, email, phone, address, isActive, createdAt, updatedAt
+  Columnas: id, name, email, phone, address, documentType, documentNumber, isActive, createdAt, updatedAt
   Relación: un cliente puede tener muchas ventas (1:N)
 */
 const Client = sequelize.define('Client', {
@@ -45,6 +45,24 @@ const Client = sequelize.define('Client', {
     allowNull: true,
     validate: {
       len: { args: [5, 250], msg: 'La dirección debe tener entre 5 y 250 caracteres' }
+    }
+  },
+  documentType: {
+    type: DataTypes.STRING(10),
+    allowNull: true,
+    validate: {
+      len: { args: [2, 10], msg: 'El tipo de documento debe tener entre 2 y 10 caracteres' }
+    }
+  },
+  documentNumber: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    unique: {
+      name: 'unique_client_document',
+      msg: 'Este número de documento ya está registrado'
+    },
+    validate: {
+      len: { args: [8, 20], msg: 'El número de documento debe tener entre 8 y 20 caracteres' }
     }
   },
   isActive: {

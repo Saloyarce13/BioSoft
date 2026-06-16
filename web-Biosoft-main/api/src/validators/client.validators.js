@@ -2,6 +2,9 @@
 
 const { z } = require('zod');
 
+const DOC_NUMBER_REGEX = /^\d{8,20}$/;
+const PHONE_REGEX = /^\+?\d{7,30}$/;
+
 const createClientSchema = z.object({
   name: z
     .string()
@@ -18,6 +21,7 @@ const createClientSchema = z.object({
     .string()
     .min(7, 'El teléfono debe tener al menos 7 caracteres')
     .max(30, 'El teléfono no puede exceder 30 caracteres')
+    .regex(PHONE_REGEX, 'El teléfono solo debe contener números')
     .optional()
     .or(z.literal('')),
   address: z
@@ -33,7 +37,8 @@ const createClientSchema = z.object({
     .or(z.literal('')),
   documentNumber: z
     .string()
-    .max(50, 'El número de documento no puede exceder 50 caracteres')
+    .regex(DOC_NUMBER_REGEX, 'El número de documento solo debe contener dígitos (8-20)')
+    .max(20, 'El número de documento no puede exceder 20 caracteres')
     .optional()
     .or(z.literal('')),
   isActive: z.boolean().default(true)
@@ -56,6 +61,7 @@ const updateClientSchema = z.object({
     .string()
     .min(7, 'El teléfono debe tener al menos 7 caracteres')
     .max(30, 'El teléfono no puede exceder 30 caracteres')
+    .regex(PHONE_REGEX, 'El teléfono solo debe contener números')
     .optional()
     .or(z.literal('')),
   address: z
@@ -71,7 +77,8 @@ const updateClientSchema = z.object({
     .or(z.literal('')),
   documentNumber: z
     .string()
-    .max(50, 'El número de documento no puede exceder 50 caracteres')
+    .regex(DOC_NUMBER_REGEX, 'El número de documento solo debe contener dígitos (8-20)')
+    .max(20, 'El número de documento no puede exceder 20 caracteres')
     .optional()
     .or(z.literal('')),
   isActive: z.boolean().optional()

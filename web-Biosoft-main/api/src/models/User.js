@@ -5,7 +5,7 @@ const { sequelize } = require('../config/database');
 
 /*
   Tabla: users
-  Columnas: id, name, email, password, isActive, roleId, createdAt, updatedAt
+  Columnas: id, name, email, password, phone, address, emailVerified, isActive, roleId, createdAt, updatedAt
   Relación: un usuario pertenece a un rol (N:1)
 */
 const User = sequelize.define('User', {
@@ -41,6 +41,20 @@ const User = sequelize.define('User', {
       len: { args: [60, 255], msg: 'La contraseña debe estar hasheada' }
     }
     // Nunca guardes la contraseña en texto plano, se hashea en el controller
+  },
+  phone: {
+    type: DataTypes.STRING(30),
+    allowNull: true,
+    validate: {
+      len: { args: [7, 30], msg: 'El teléfono debe tener entre 7 y 30 caracteres' }
+    }
+  },
+  address: {
+    type: DataTypes.STRING(250),
+    allowNull: true,
+    validate: {
+      len: { args: [5, 250], msg: 'La dirección debe tener entre 5 y 250 caracteres' }
+    }
   },
   emailVerified: {
     type: DataTypes.BOOLEAN,

@@ -44,7 +44,8 @@ import {
   CreditCard,
   Package,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  Lock
 } from 'lucide-react';
 
 // Definición de tipos
@@ -368,6 +369,10 @@ export function ProviderManagement() {
     website: '',
     notes: ''
   });
+  const [originalDocType, setOriginalDocType] = useState('');
+  const [originalTaxId, setOriginalTaxId] = useState('');
+
+  const isDocLocked = (currentView === 'edit' && formData.documentType === originalDocType && originalTaxId !== '');
 
   // Estados para reportes
   const [reportType, setReportType] = useState('by-category');
@@ -404,6 +409,8 @@ export function ProviderManagement() {
       notes: ''
     });
     setSelectedProvider(null);
+    setOriginalDocType('');
+    setOriginalTaxId('');
   };
 
   // Crear proveedor
@@ -536,6 +543,8 @@ export function ProviderManagement() {
   // Abrir modal de edición
   const openEditModal = (provider: Provider) => {
     setSelectedProvider(provider);
+    setOriginalDocType(provider.documentType);
+    setOriginalTaxId(provider.taxId);
     setFormData({
       name: provider.name,
       businessName: provider.businessName,
@@ -1007,7 +1016,20 @@ export function ProviderManagement() {
                 <Label htmlFor="taxId" className="text-xs font-medium">
                   {formData.documentType === 'NIT' ? 'NIT (sin dígito)' : docLabel} <span className="text-destructive">*</span>
                 </Label>
-                <Input id="taxId" value={formData.taxId} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, docMaxLen); setFormData(prev => ({ ...prev, taxId: val })); }} placeholder={docPlaceholder} required className="h-9 text-sm shadow-sm" maxLength={docMaxLen} inputMode="numeric" />
+                <div className="relative">
+                  <Input id="taxId" value={formData.taxId}
+                    onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 20); setFormData(prev => ({ ...prev, taxId: val })); }}
+                    placeholder={docPlaceholder} required
+                    className={`h-9 text-sm shadow-sm ${isDocLocked ? 'bg-muted text-muted-foreground' : ''}`}
+                    maxLength={20} inputMode="numeric"
+                    disabled={isDocLocked} />
+                  {isDocLocked && (
+                    <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                {isDocLocked && <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />Cambia el tipo de documento para modificar el número</p>}
               </div>
             </div>
 

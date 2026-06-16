@@ -5,7 +5,7 @@ const { sequelize } = require('../config/database');
 
 /*
   Tabla: providers
-  Columnas: id, name, email, phone, address, isActive, createdAt, updatedAt
+  Columnas: id, name, businessName, documentType, documentNumber, contactPerson, email, phone, address, website, notes, isActive, createdAt, updatedAt
   Relación: un proveedor puede tener muchas compras (1:N)
 */
 const Provider = sequelize.define('Provider', {
@@ -20,6 +20,34 @@ const Provider = sequelize.define('Provider', {
     validate: {
       notEmpty: { msg: 'El nombre del proveedor no puede estar vacío' },
       len: { args: [2, 150], msg: 'El nombre debe tener entre 2 y 150 caracteres' }
+    }
+  },
+  businessName: {
+    type: DataTypes.STRING(200),
+    allowNull: true,
+    validate: {
+      len: { args: [2, 200], msg: 'La razón social debe tener entre 2 y 200 caracteres' }
+    }
+  },
+  documentType: {
+    type: DataTypes.STRING(10),
+    allowNull: true,
+    validate: {
+      len: { args: [2, 10], msg: 'El tipo de documento debe tener entre 2 y 10 caracteres' }
+    }
+  },
+  documentNumber: {
+    type: DataTypes.STRING(20),
+    allowNull: true,
+    validate: {
+      len: { args: [1, 20], msg: 'El número de documento debe tener entre 1 y 20 caracteres' }
+    }
+  },
+  contactPerson: {
+    type: DataTypes.STRING(150),
+    allowNull: true,
+    validate: {
+      len: { args: [2, 150], msg: 'El contacto debe tener entre 2 y 150 caracteres' }
     }
   },
   email: {
@@ -45,6 +73,20 @@ const Provider = sequelize.define('Provider', {
     allowNull: true,
     validate: {
       len: { args: [5, 250], msg: 'La dirección debe tener entre 5 y 250 caracteres' }
+    }
+  },
+  website: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    validate: {
+      isUrl: { msg: 'La URL del sitio web no es válida' }
+    }
+  },
+  notes: {
+    type: DataTypes.STRING(500),
+    allowNull: true,
+    validate: {
+      len: { args: [0, 500], msg: 'Las notas no pueden exceder 500 caracteres' }
     }
   },
   isActive: {

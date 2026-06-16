@@ -31,7 +31,8 @@ import {
   Briefcase,
   DollarSign,
   RefreshCw,
-  IdCard
+  IdCard,
+  Lock
 } from 'lucide-react';
 
 // Definición de tipos
@@ -136,6 +137,10 @@ export function EmployeeManagement() {
     confirmPassword: '',
   });
   const [salaryDisplay, setSalaryDisplay] = useState('');
+  const [originalDocType, setOriginalDocType] = useState('');
+  const [originalDocNumber, setOriginalDocNumber] = useState('');
+
+  const isDocLocked = (currentView === 'edit' && formData.documentType === originalDocType && originalDocNumber !== '');
 
   const filteredEmployees = useMemo(() => {
     return apiEmployees.filter(employee => {
@@ -185,8 +190,8 @@ export function EmployeeManagement() {
     setCurrentView('create');
   };
 
-  const PHONE_REGEX = /^\+?\d{10,20}$/;
-  const DOC_REGEX   = /^\d{8,15}$/;
+  const PHONE_REGEX = /^\+?\d{7,30}$/;
+  const DOC_REGEX   = /^\d{8,20}$/;
 
   const handleCreateEmployee = async () => {
     if (!formData.firstName.trim() || !formData.lastName.trim()) {
@@ -199,7 +204,7 @@ export function EmployeeManagement() {
       toast.error('El número de documento es obligatorio'); return;
     }
     if (!DOC_REGEX.test(formData.documentNumber)) {
-      toast.error('El número de documento solo acepta entre 8 y 15 dígitos numéricos'); return;
+      toast.error('El número de documento solo acepta entre 8 y 20 dígitos numéricos'); return;
     }
     if (!formData.birthDate) {
       toast.error('La fecha de nacimiento es obligatoria'); return;
@@ -212,7 +217,7 @@ export function EmployeeManagement() {
       toast.error('El empleado debe ser mayor de 18 años'); return;
     }
     if (formData.phone && !PHONE_REGEX.test(formData.phone)) {
-      toast.error('El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)'); return;
+      toast.error('El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)'); return;
     }
     if (!formData.salary || formData.salary <= 0) {
       toast.error('El sueldo es obligatorio'); return;
@@ -251,7 +256,7 @@ export function EmployeeManagement() {
       toast.error('El email es obligatorio'); return;
     }
     if (formData.documentNumber && !DOC_REGEX.test(formData.documentNumber)) {
-      toast.error('El número de documento solo acepta entre 8 y 15 dígitos numéricos'); return;
+      toast.error('El número de documento solo acepta entre 8 y 20 dígitos numéricos'); return;
     }
     if (formData.birthDate) {
       const birth = new Date(formData.birthDate);
@@ -263,7 +268,7 @@ export function EmployeeManagement() {
       }
     }
     if (formData.phone && !PHONE_REGEX.test(formData.phone)) {
-      toast.error('El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)'); return;
+      toast.error('El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)'); return;
     }
     if (!formData.salary || formData.salary <= 0) {
       toast.error('El sueldo es obligatorio'); return;
@@ -324,6 +329,8 @@ export function EmployeeManagement() {
 
   const openEditModal = (employee: Employee) => {
     setSelectedEmployee(employee);
+    setOriginalDocType(employee.documentType);
+    setOriginalDocNumber(employee.documentNumber);
     setFormData({
       firstName: employee.firstName,
       lastName: employee.lastName,
@@ -449,7 +456,20 @@ export function EmployeeManagement() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
-                <Input id="docNum" value={formData.documentNumber} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 15); setFormData(p => ({ ...p, documentNumber: val })); }} placeholder="1234567890" className="h-9 text-sm shadow-sm" maxLength={15} inputMode="numeric" />
+                <div className="relative">
+                  <Input id="docNum" value={formData.documentNumber}
+                    onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 20); setFormData(p => ({ ...p, documentNumber: val })); }}
+                    placeholder="1234567890"
+                    className={`h-9 text-sm shadow-sm ${isDocLocked ? 'bg-muted text-muted-foreground' : ''}`}
+                    maxLength={20} inputMode="numeric"
+                    disabled={isDocLocked} />
+                  {isDocLocked && (
+                    <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+                {isDocLocked && <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />Cambia el tipo de documento para modificar el número</p>}
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2">
@@ -468,7 +488,7 @@ export function EmployeeManagement() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="phone" className="text-xs font-medium">Teléfono</Label>
-              <Input id="phone" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\D/g, ''); setFormData(p => ({ ...p, phone: val })); }} placeholder="3001234567" className="h-9 text-sm shadow-sm" inputMode="numeric" />
+              <Input id="phone" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 30); setFormData(p => ({ ...p, phone: val })); }} placeholder="3001234567" className="h-9 text-sm shadow-sm" inputMode="numeric" maxLength={30} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="address" className="text-xs font-medium">Dirección</Label>

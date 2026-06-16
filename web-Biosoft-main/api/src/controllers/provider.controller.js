@@ -4,32 +4,32 @@ const { validate } = require('../lib/validate');
 
 // Regex de validaciones (proveedores pueden tener NIT con guión o solo dígitos)
 const DOC_NUMBER_REGEX = /^[\d\-]{1,20}$/; // dígitos y guión, máx 20 (NIT: 900123456-1)
-const PHONE_REGEX      = /^\+?\d{10,20}$/; // 10-20 dígitos, permite '+' al inicio
+const PHONE_REGEX      = /^\+?\d{7,30}$/; // 7-30 dígitos, permite '+' al inicio
 const VALID_DOC_TYPES  = ['NIT', 'CC', 'CE', 'PAS', 'RUT'];
 
 const createProviderSchema = z.object({
   name:           z.string().min(2).max(150),
-  businessName:   z.string().max(150).optional().nullable(),
+  businessName:   z.string().max(200).optional().nullable(),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().nullable(),
-  documentNumber: z.string().regex(DOC_NUMBER_REGEX, 'Número de documento inválido (máx 20 caracteres, solo dígitos y guión)').optional().nullable(),
-  contactPerson:  z.string().max(120).optional().nullable(),
-  email:          z.string().email('Email inválido').optional().nullable(),
-  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)').optional().nullable(),
+  documentNumber: z.string().regex(DOC_NUMBER_REGEX, 'Número de documento inválido (máx 20 caracteres, solo dígitos y guión)').max(20).optional().nullable(),
+  contactPerson:  z.string().max(150).optional().nullable(),
+  email:          z.string().email('Email inválido').max(150).optional().nullable(),
+  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().nullable(),
   address:        z.string().max(250).optional().nullable(),
-  website:        z.string().max(250).optional().nullable(),
+  website:        z.string().max(500).optional().nullable(),
   notes:          z.string().max(500).optional().nullable(),
 });
 
 const updateProviderSchema = z.object({
   name:           z.string().min(2).max(150).optional(),
-  businessName:   z.string().max(150).optional().nullable(),
+  businessName:   z.string().max(200).optional().nullable(),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().nullable(),
-  documentNumber: z.string().regex(DOC_NUMBER_REGEX, 'Número de documento inválido (máx 20 caracteres, solo dígitos y guión)').optional().nullable(),
-  contactPerson:  z.string().max(120).optional().nullable(),
-  email:          z.string().email('Email inválido').optional().nullable(),
-  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)').optional().nullable(),
+  documentNumber: z.string().regex(DOC_NUMBER_REGEX, 'Número de documento inválido (máx 20 caracteres, solo dígitos y guión)').max(20).optional().nullable(),
+  contactPerson:  z.string().max(150).optional().nullable(),
+  email:          z.string().email('Email inválido').max(150).optional().nullable(),
+  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().nullable(),
   address:        z.string().max(250).optional().nullable(),
-  website:        z.string().max(250).optional().nullable(),
+  website:        z.string().max(500).optional().nullable(),
   notes:          z.string().max(500).optional().nullable(),
   isActive:       z.coerce.boolean().optional(),
 });
@@ -162,8 +162,22 @@ const update = async (req, res) => {
 
     // Validar documento duplicado al editar (ignorar el propio registro)
     if (documentNumber && documentNumber !== provider.documentNumber) {
+      // El número de documento solo puede cambiar si también cambia el tipo de documento
+      if (!documentType || documentType === provider.documentType) {
+        return res.status(400).json({
+          success: false,
+          message: 'El número de documento no puede modificarse sin cambiar también el tipo de documento'
+        });
+      }
       const existingDoc = await prisma.provider.findFirst({ where: { documentNumber, NOT: { id: providerId } } });
       if (existingDoc) return res.status(409).json({ success: false, message: 'Ya existe un proveedor con este número de documento' });
+    }
+    // Si solo cambia el tipo de documento, no se permite
+    if (documentType && documentType !== provider.documentType && !documentNumber) {
+      return res.status(400).json({
+        success: false,
+        message: 'Para cambiar el tipo de documento también debe proporcionar el nuevo número de documento'
+      });
     }
 
     const updated = await prisma.provider.update({

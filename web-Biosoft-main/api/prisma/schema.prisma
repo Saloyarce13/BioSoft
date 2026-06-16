@@ -11,11 +11,11 @@ datasource db {
 
 model User {
   id            Int       @id @default(autoincrement())
-  name          String
-  email         String    @unique
-  password      String
-  phone         String?
-  address       String?
+  name          String    @db.VarChar(100)
+  email         String    @unique @db.VarChar(150)
+  password      String    @db.VarChar(255)
+  phone         String?   @db.VarChar(30)
+  address       String?   @db.VarChar(250)
   isActive      Boolean   @default(true)
   emailVerified Boolean   @default(false)
   lastLogin     DateTime?
@@ -34,8 +34,8 @@ model User {
 
 model Role {
   id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
+  name        String   @unique @db.VarChar(50)
+  description String?  @db.VarChar(200)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -49,10 +49,10 @@ model Role {
 
 model Permission {
   id          Int      @id @default(autoincrement())
-  name        String   @unique
-  resource    String
-  action      String
-  description String?
+  name        String   @unique @db.VarChar(100)
+  resource    String   @db.VarChar(100)
+  action      String   @db.VarChar(50)
+  description String?  @db.VarChar(200)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -78,8 +78,8 @@ model RolePermission {
 
 model Category {
   id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String?
+  name        String   @unique @db.VarChar(100)
+  description String?  @db.VarChar(300)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -92,16 +92,16 @@ model Category {
 
 model Provider {
   id             Int      @id @default(autoincrement())
-  name           String
-  businessName   String?
-  documentType   String?
-  documentNumber String?
-  contactPerson  String?
-  email          String?  @unique
-  phone          String?
-  address        String?
-  website        String?
-  notes          String?
+  name           String   @db.VarChar(150)
+  businessName   String?  @db.VarChar(200)
+  documentType   String?  @db.VarChar(10)
+  documentNumber String?  @db.VarChar(20)
+  contactPerson  String?  @db.VarChar(150)
+  email          String?  @unique @db.VarChar(150)
+  phone          String?  @db.VarChar(30)
+  address        String?  @db.VarChar(250)
+  website        String?  @db.VarChar(500)
+  notes          String?  @db.VarChar(500)
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -116,16 +116,16 @@ model Provider {
 
 model Product {
   id          Int      @id @default(autoincrement())
-  name        String
+  name        String   @db.VarChar(150)
   description String?
   price       Float
   stock       Int      @default(0)
   minStock    Int      @default(0)
-  sku         String?  @unique
-  image       String?
+  sku         String?  @unique @db.VarChar(50)
+  image       String?  @db.VarChar(500)
   cost        Float?
   weight      Float?
-  barcode     String?
+  barcode     String?  @db.VarChar(50)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -159,17 +159,17 @@ model ProductProvider {
 
 model Employee {
   id             Int       @id @default(autoincrement())
-  fullName       String
-  email          String?   @unique
-  phone          String?
-  documentType   String?
-  documentNumber String?   @unique
-  address        String?
+  fullName       String    @db.VarChar(120)
+  email          String?   @unique @db.VarChar(150)
+  phone          String?   @db.VarChar(30)
+  documentType   String?   @db.VarChar(10)
+  documentNumber String?   @unique @db.VarChar(20)
+  address        String?   @db.VarChar(250)
   birthDate      DateTime?
-  position       String?
+  position       String?   @db.VarChar(50)
   salary         Float?
   hireDate       DateTime?
-  password       String
+  password       String    @db.VarChar(255)
   isActive       Boolean   @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -183,12 +183,12 @@ model Employee {
 
 model Client {
   id             Int      @id @default(autoincrement())
-  name           String
-  email          String?  @unique
-  phone          String?
-  address        String?
-  documentType   String?
-  documentNumber String?  @unique
+  name           String   @db.VarChar(150)
+  email          String?  @unique @db.VarChar(150)
+  phone          String?  @db.VarChar(30)
+  address        String?  @db.VarChar(250)
+  documentType   String?  @db.VarChar(10)
+  documentNumber String?  @unique @db.VarChar(20)
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -202,10 +202,10 @@ model Client {
 model Sale {
   id              Int      @id @default(autoincrement())
   totalPrice      Float    @default(0)
-  status          String   @default("REGISTERED")
+  status          String   @default("REGISTERED") @db.VarChar(20)
   notes           String?
   saleDate        DateTime @default(now())
-  pdfUrl          String?
+  pdfUrl          String?  @db.VarChar(500)
   readyAt         DateTime? // cuando el admin marca como listo para recoger
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -243,10 +243,10 @@ model SaleItem {
 model Purchase {
   id              Int      @id @default(autoincrement())
   totalPrice      Float    @default(0)
-  status          String   @default("REGISTERED")
+  status          String   @default("REGISTERED") @db.VarChar(20)
   notes           String?
   purchasedAt     DateTime @default(now())
-  pdfUrl          String?
+  pdfUrl          String?  @db.VarChar(500)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -282,7 +282,7 @@ model PurchaseItem {
 
 model Transaction {
   id         Int      @id @default(autoincrement())
-  type       String   // STOCK_IN, STOCK_OUT, SALE, PURCHASE, etc.
+  type       String   @db.VarChar(30) // STOCK_IN, STOCK_OUT, SALE, PURCHASE, etc.
   amount     Float    @default(0)
   metadata   Json?
   createdAt  DateTime @default(now())
@@ -300,8 +300,8 @@ model Transaction {
 
 model PasswordResetCode {
   id        Int      @id @default(autoincrement())
-  email     String
-  codeHash  String
+  email     String   @db.VarChar(150)
+  codeHash  String   @db.VarChar(255)
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
@@ -314,10 +314,10 @@ model PasswordResetCode {
 // El campo `value` es JSON para soportar strings, arrays y objetos.
 model SystemConfig {
   id          Int      @id @default(autoincrement())
-  key         String   @unique
+  key         String   @unique @db.VarChar(100)
   value       Json
-  description String?
-  group       String?  // Agrupación lógica: "document_types", "sale_statuses", etc.
+  description String?  @db.VarChar(300)
+  group       String?  @db.VarChar(50) // Agrupación lógica: "document_types", "sale_statuses", etc.
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

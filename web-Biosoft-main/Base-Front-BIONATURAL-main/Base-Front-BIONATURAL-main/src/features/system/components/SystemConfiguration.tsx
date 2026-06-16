@@ -421,8 +421,9 @@ export function SystemConfiguration({ userRole }: SystemConfigurationProps) {
                     <Input
                       id="phone"
                       value={storeConfig.phone}
-                      onChange={(e) => updateStoreConfig('phone', e.target.value)}
+                      onChange={(e) => updateStoreConfig('phone', e.target.value.replace(/\D/g, '').slice(0, 30))}
                       disabled={!canEdit}
+                      inputMode="numeric" maxLength={30}
                     />
                   </div>
                   
@@ -443,7 +444,7 @@ export function SystemConfiguration({ userRole }: SystemConfigurationProps) {
                       id="taxRate"
                       type="number"
                       value={storeConfig.taxRate}
-                      onChange={(e) => updateStoreConfig('taxRate', parseFloat(e.target.value))}
+                      onChange={(e) => updateStoreConfig('taxRate', parseFloat(e.target.value.replace(/[^0-9.]/g, '')))}
                       disabled={!canEdit}
                     />
                   </div>
@@ -791,7 +792,7 @@ export function SystemConfiguration({ userRole }: SystemConfigurationProps) {
                   <Input
                     type="number"
                     value={backupConfig.retentionDays}
-                    onChange={(e) => updateBackupConfig('retentionDays', parseInt(e.target.value))}
+                    onChange={(e) => updateBackupConfig('retentionDays', parseInt(e.target.value.replace(/\D/g, '')) || 1)}
                     min="1"
                     max="365"
                   />

@@ -4,17 +4,14 @@ import { Badge } from '../../../components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
-import { Separator } from '../../../components/ui/separator';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs';
 import { Avatar, AvatarFallback, AvatarImage } from '../../../components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../../../components/ui/dialog';
 import { 
   User, 
   Mail, 
   Phone, 
-  MapPin, 
-  CreditCard, 
-  Settings, 
+  MapPin,
+  CreditCard,
   TrendingUp,
   ShoppingBag,
   Users,
@@ -22,10 +19,8 @@ import {
   Calendar,
   Award,
   Edit3,
-  Plus,
   LogOut,
-  Shield,
-  Wallet
+  Shield
 } from 'lucide-react';
 
 interface UserProfilePanelProps {
@@ -81,30 +76,6 @@ const getUserStats = (role: string) => {
   }
 };
 
-const getPaymentMethods = () => [
-  {
-    id: 1,
-    type: 'Tarjeta de Crédito',
-    details: '**** **** **** 4532',
-    provider: 'Visa',
-    isDefault: true
-  },
-  {
-    id: 2,
-    type: 'Tarjeta de Débito',
-    details: '**** **** **** 8901',
-    provider: 'Mastercard',
-    isDefault: false
-  },
-  {
-    id: 3,
-    type: 'PayPal',
-    details: 'usuario@email.com',
-    provider: 'PayPal',
-    isDefault: false
-  }
-];
-
 export function UserProfilePanel({ user, onLogout }: UserProfilePanelProps) {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -116,7 +87,6 @@ export function UserProfilePanel({ user, onLogout }: UserProfilePanelProps) {
   });
 
   const userStats = getUserStats(user.role);
-  const paymentMethods = getPaymentMethods();
 
   const getUserInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
@@ -222,171 +192,50 @@ export function UserProfilePanel({ user, onLogout }: UserProfilePanelProps) {
         </CardContent>
       </Card>
 
-      {/* Tabs con información detallada */}
-      <Tabs defaultValue="info" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="info">Información Personal</TabsTrigger>
-          <TabsTrigger value="payments">Métodos de Pago</TabsTrigger>
-          <TabsTrigger value="settings">Configuración</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="info">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Información Personal
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center gap-3">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{profileData.email}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Phone className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Teléfono</p>
-                    <p className="font-medium">{profileData.phone}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <MapPin className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Dirección</p>
-                    <p className="font-medium">{profileData.address}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Empresa</p>
-                    <p className="font-medium">{profileData.company}</p>
-                  </div>
-                </div>
+      {/* Información Personal */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Información Personal
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center gap-3">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Email</p>
+                <p className="font-medium">{profileData.email}</p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="payments">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Wallet className="h-5 w-5" />
-                Métodos de Pago
-              </CardTitle>
-              <CardDescription>
-                Gestiona tus métodos de pago guardados
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {paymentMethods.map((method) => (
-                <div key={method.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="h-8 w-8 text-muted-foreground" />
-                    <div>
-                      <p className="font-medium">{method.type}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {method.details} • {method.provider}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    {method.isDefault && (
-                      <Badge variant="secondary">Predeterminado</Badge>
-                    )}
-                    <Button variant="outline" size="sm">
-                      <Edit3 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              
-              <Button variant="outline" className="w-full">
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Método de Pago
-              </Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                Configuración de Cuenta
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Notificaciones por email</p>
-                    <p className="text-sm text-muted-foreground">
-                      Recibir actualizaciones por correo electrónico
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Configurar
-                  </Button>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Autenticación de dos factores</p>
-                    <p className="text-sm text-muted-foreground">
-                      Agregar una capa extra de seguridad
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Activar
-                  </Button>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Cambiar contraseña</p>
-                    <p className="text-sm text-muted-foreground">
-                      Actualizar tu contraseña de acceso
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    Cambiar
-                  </Button>
-                </div>
-                
-                <Separator />
-                
-                <div className="flex items-center justify-between text-red-600">
-                  <div>
-                    <p className="font-medium">Eliminar cuenta</p>
-                    <p className="text-sm text-muted-foreground">
-                      Eliminar permanentemente tu cuenta
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                    Eliminar
-                  </Button>
-                </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <Phone className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Teléfono</p>
+                <p className="font-medium">{profileData.phone}</p>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Dirección</p>
+                <p className="font-medium">{profileData.address}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <div>
+                <p className="text-sm text-muted-foreground">Empresa</p>
+                <p className="font-medium">{profileData.company}</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -415,6 +264,7 @@ function ProfileEditForm({
             id="name"
             value={data.name}
             onChange={(e) => onChange({ ...data, name: e.target.value })}
+            maxLength={150}
           />
         </div>
         
@@ -425,6 +275,7 @@ function ProfileEditForm({
             type="email"
             value={data.email}
             onChange={(e) => onChange({ ...data, email: e.target.value })}
+            maxLength={150}
           />
         </div>
       </div>
@@ -435,7 +286,8 @@ function ProfileEditForm({
           <Input
             id="phone"
             value={data.phone}
-            onChange={(e) => onChange({ ...data, phone: e.target.value })}
+            onChange={(e) => onChange({ ...data, phone: e.target.value.replace(/\D/g, '').slice(0, 30) })}
+            inputMode="numeric" maxLength={30}
           />
         </div>
         
@@ -445,17 +297,19 @@ function ProfileEditForm({
             id="company"
             value={data.company}
             onChange={(e) => onChange({ ...data, company: e.target.value })}
+            maxLength={150}
           />
         </div>
       </div>
       
       <div>
         <Label htmlFor="address">Dirección</Label>
-        <Input
-          id="address"
-          value={data.address}
-          onChange={(e) => onChange({ ...data, address: e.target.value })}
-        />
+          <Input
+            id="address"
+            value={data.address}
+            onChange={(e) => onChange({ ...data, address: e.target.value })}
+            maxLength={250}
+          />
       </div>
       
       <div className="flex gap-2 justify-end">

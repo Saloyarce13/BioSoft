@@ -216,7 +216,7 @@ export function CheckoutFlow({ cartItems, onClose, onOrderComplete, user, onLogi
                     <Label className="text-xs">Teléfono <span className="text-muted-foreground">(opcional)</span></Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                      <Input value={loginData.phone} onChange={e => setLoginData(p => ({ ...p, phone: e.target.value }))} className="pl-9 h-9 text-sm" placeholder="+57 300 000 0000" />
+                      <Input value={loginData.phone} onChange={e => setLoginData(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 30) }))} className="pl-9 h-9 text-sm" placeholder="+57 300 000 0000" inputMode="numeric" maxLength={30} />
                     </div>
                   </div>
                   <div className="space-y-1">

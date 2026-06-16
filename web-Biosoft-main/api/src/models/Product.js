@@ -5,7 +5,7 @@ const { sequelize } = require('../config/database');
 
 /*
   Tabla: products
-  Columnas: id, name, description, price, stock, image, isActive, categoryId, createdAt, updatedAt
+  Columnas: id, name, description, price, stock, minStock, sku, image, cost, weight, barcode, isActive, categoryId, createdAt, updatedAt
   Relación: un producto pertenece a una categoría (N:1)
 */
 const Product = sequelize.define('Product', {
@@ -56,11 +56,54 @@ const Product = sequelize.define('Product', {
       min: { args: [0], msg: 'El stock no puede ser negativo' }
     }
   },
+  minStock: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+    validate: {
+      isInt: { msg: 'El stock mínimo debe ser un número entero' },
+      min: { args: [0], msg: 'El stock mínimo no puede ser negativo' }
+    }
+  },
+  sku: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    unique: {
+      name: 'unique_product_sku',
+      msg: 'Este SKU ya está registrado'
+    },
+    validate: {
+      len: { args: [0, 50], msg: 'El SKU no puede exceder 50 caracteres' }
+    }
+  },
   image: {
     type: DataTypes.STRING(500),
     allowNull: true,
     validate: {
       isUrl: { msg: 'La URL de la imagen no es válida', require_protocol: true }
+    }
+  },
+  cost: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    validate: {
+      isDecimal: { msg: 'El costo debe ser un número válido' },
+      min: { args: [0], msg: 'El costo no puede ser negativo' }
+    }
+  },
+  weight: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
+    validate: {
+      isDecimal: { msg: 'El peso debe ser un número válido' },
+      min: { args: [0], msg: 'El peso no puede ser negativo' }
+    }
+  },
+  barcode: {
+    type: DataTypes.STRING(50),
+    allowNull: true,
+    validate: {
+      len: { args: [0, 50], msg: 'El código de barras no puede exceder 50 caracteres' }
     }
   },
   isActive: {

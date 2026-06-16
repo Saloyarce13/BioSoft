@@ -71,7 +71,7 @@ type StockProduct = {
   category?: { id: number; name: string };
 };
 
-export function ReportsAnalytics(): JSX.Element {
+export function ReportsAnalytics(): React.ReactElement {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedReport, setSelectedReport] = useState('dashboard');

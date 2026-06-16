@@ -707,13 +707,13 @@ export function ProductManagement({
               <div className="space-y-1">
               <Label htmlFor="price" className="text-xs font-medium">Precio de Venta <span className="text-destructive">*</span></Label>
               <Input id="price" type="number" step="0.01" min="0" value={formData.price}
-                onChange={e => setFormData({...formData, price: e.target.value})}
+                onChange={e => setFormData({...formData, price: e.target.value.replace(/[^0-9.]/g, '')})}
                 placeholder="0.00" required className="h-9 text-sm shadow-sm" />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="cost" className="text-xs font-medium">Precio de Costo</Label>
                 <Input id="cost" type="number" step="0.01" min="0" value={formData.cost}
-                  onChange={e => setFormData({...formData, cost: e.target.value})}
+                  onChange={e => setFormData({...formData, cost: e.target.value.replace(/[^0-9.]/g, '')})}
                   placeholder="0.00" className="h-9 text-sm shadow-sm" />
               </div>
             </div>
@@ -732,13 +732,13 @@ export function ProductManagement({
               <div className="space-y-1">
                 <Label htmlFor="stock" className="text-xs font-medium">Stock Actual</Label>
                 <Input id="stock" type="number" min="0" value={formData.stock}
-                  onChange={e => setFormData({...formData, stock: e.target.value})}
+                  onChange={e => setFormData({...formData, stock: e.target.value.replace(/\D/g, '')})}
                   placeholder="0" className="h-9 text-sm shadow-sm" />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="minStock" className="text-xs font-medium">Stock Mínimo</Label>
                 <Input id="minStock" type="number" min="0" value={formData.minStock}
-                  onChange={e => setFormData({...formData, minStock: e.target.value})}
+                  onChange={e => setFormData({...formData, minStock: e.target.value.replace(/\D/g, '')})}
                   placeholder="5" className="h-9 text-sm shadow-sm" />
               </div>
             </div>
@@ -772,7 +772,7 @@ export function ProductManagement({
             <div className="space-y-1">
               <Label htmlFor="weight" className="text-xs font-medium">Peso (gramos)</Label>
               <Input id="weight" type="number" min="0" step="0.1" value={formData.weight}
-                onChange={e => setFormData({...formData, weight: e.target.value})}
+                onChange={e => setFormData({...formData, weight: e.target.value.replace(/[^0-9.]/g, '')})}
                 placeholder="100" className="h-9 text-sm shadow-sm" />
             </div>
 

@@ -168,10 +168,10 @@ function AddItemsPanel({ purchaseId, providerId, existingProductIds, onAdd, onRe
                     <div key={item.productId} className="flex items-center gap-2 bg-muted/30 rounded-lg px-3 py-2">
                       <span className="text-sm flex-1 truncate">{item.productName}</span>
                       <Input type="number" min={1} value={item.quantity}
-                        onChange={e => updateItem(item.productId, 'quantity', Number(e.target.value))}
+                        onChange={e => updateItem(item.productId, 'quantity', Number(e.target.value.replace(/\D/g, '')) || 1)}
                         className="h-7 w-16 text-xs" />
                       <Input type="number" min={0} step={100} value={item.unitPrice}
-                        onChange={e => updateItem(item.productId, 'unitPrice', Number(e.target.value))}
+                        onChange={e => updateItem(item.productId, 'unitPrice', Number(e.target.value.replace(/[^0-9.]/g, '')) || 0)}
                         className="h-7 w-24 text-xs" />
                       <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0"
                         onClick={() => setAddCart(prev => prev.filter(c => c.productId !== item.productId))}>

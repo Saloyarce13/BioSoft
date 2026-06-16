@@ -18,7 +18,7 @@ import {
   Users, Plus, Edit, Trash2, Eye,
   ChevronLeft, Mail, Phone,
   MapPin, User, FileText, RefreshCw, AlertTriangle,
-  IdCard,
+  IdCard, Lock,
 } from 'lucide-react';
 
 interface Client {
@@ -71,6 +71,10 @@ export function ClientManagement() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
+  const [originalDocType, setOriginalDocType] = useState<string>('');
+  const [originalDocNumber, setOriginalDocNumber] = useState<string>('');
+
+  const isDocLocked = (currentView === 'edit' && formData.documentType === originalDocType && originalDocNumber !== '');
 
   const load = async () => {
     try {
@@ -98,20 +102,20 @@ export function ClientManagement() {
     documentNumber: touched.documentNumber
       ? !formData.documentNumber.trim()
         ? 'El número es obligatorio'
-        : !/^\d{8,15}$/.test(formData.documentNumber.trim())
-          ? '8-15 dígitos numéricos'
+        : !/^\d{8,20}$/.test(formData.documentNumber.trim())
+          ? '8-20 dígitos numéricos'
           : ''
       : '',
     email: touched.email && formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ? 'Email inválido' : '',
-    phone: touched.phone && formData.phone && !/^\+?\d{10,20}$/.test(formData.phone) ? '10-20 dígitos (puede incluir +)' : '',
+    phone: touched.phone && formData.phone && !/^\+?\d{7,30}$/.test(formData.phone) ? '7-30 dígitos (puede incluir +)' : '',
   };
 
   const touch = (f: keyof FormData) => setTouched(p => ({ ...p, [f]: true }));
 
   const validate = () => {
     setTouched({ name: true, documentType: true, documentNumber: true, email: true, phone: true });
-    const docOk = formData.documentNumber.trim() && /^\d{8,15}$/.test(formData.documentNumber.trim());
-    const phoneOk = !formData.phone || /^\+?\d{10,20}$/.test(formData.phone);
+    const docOk = formData.documentNumber.trim() && /^\d{8,20}$/.test(formData.documentNumber.trim());
+    const phoneOk = !formData.phone || /^\+?\d{7,30}$/.test(formData.phone);
     return !!(formData.name.trim() && formData.documentType && docOk && phoneOk &&
       !(formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)));
   };
@@ -139,10 +143,12 @@ export function ClientManagement() {
       address: c.address || '',
       documentType: c.documentType || 'CC',
       documentNumber: c.documentNumber || '', isActive: c.isActive });
+    setOriginalDocType(c.documentType || '');
+    setOriginalDocNumber(c.documentNumber || '');
     setTouched({}); setSelectedClient(c); setCurrentView('edit');
   };
   const openDetail = (c: Client) => { setSelectedClient(c); setDetailOpen(true); };
-  const cancel = () => { setCurrentView('list'); setSelectedClient(null); setFormData(emptyForm); setTouched({}); };
+  const cancel = () => { setCurrentView('list'); setSelectedClient(null); setFormData(emptyForm); setTouched({}); setOriginalDocType(''); setOriginalDocNumber(''); };
 
   const handleCreate = async () => {
     if (!validate()) return;
@@ -265,13 +271,23 @@ export function ClientManagement() {
                 <Label htmlFor="docNum" className="text-xs font-medium">
                   {formData.documentType === 'NIT' ? 'NIT (sin dígito)' : 'Nº documento'} <span className="text-destructive">*</span>
                 </Label>
-                <Input id="docNum" value={formData.documentNumber}
-                  onChange={e => setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '') }))}
-                  onBlur={() => touch('documentNumber')}
-                  placeholder={formData.documentType === 'NIT' ? 'Ej: 900123456' : '1234567890'}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  className={`h-9 text-sm shadow-sm ${errors.documentNumber ? 'border-destructive' : ''}`} />
+                <div className="relative">
+                  <Input id="docNum" value={formData.documentNumber}
+                    onChange={e => setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '').slice(0, 20) }))}
+                    onBlur={() => touch('documentNumber')}
+                    placeholder={formData.documentType === 'NIT' ? 'Ej: 900123456' : '1234567890'}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    disabled={isDocLocked}
+                    maxLength={20}
+                    className={`h-9 text-sm shadow-sm ${errors.documentNumber ? 'border-destructive' : ''} ${isDocLocked ? 'bg-muted text-muted-foreground' : ''}`} />
+                  {isDocLocked && (
+                    <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                      <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Bloqueado" />
+                    </div>
+                  )}
+                </div>
+                {isDocLocked && <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />Cambia el tipo de documento para modificar el número</p>}
                 {errors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{errors.documentNumber}</p>}
               </div>
             </div>
@@ -303,6 +319,7 @@ export function ClientManagement() {
                 onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                 onBlur={() => touch('name')}
                 placeholder={formData.documentType === 'NIT' ? 'Ej: Empresa S.A.S.' : 'Ej: María González'}
+                maxLength={150}
                 className={`h-9 text-sm shadow-sm ${errors.name ? 'border-destructive' : ''}`} />
               {errors.name && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{errors.name}</p>}
             </div>
@@ -334,6 +351,7 @@ export function ClientManagement() {
                 onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                 onBlur={() => touch('email')}
                 placeholder={formData.documentType === 'NIT' ? 'empresa@correo.com' : 'cliente@email.com'}
+                maxLength={150}
                 className={`h-9 text-sm shadow-sm ${errors.email ? 'border-destructive' : ''}`} />
               {errors.email && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{errors.email}</p>}
             </div>
@@ -342,9 +360,10 @@ export function ClientManagement() {
               <div className="space-y-1">
                 <Label htmlFor="phone" className="text-xs font-medium">Teléfono</Label>
                 <Input id="phone" value={formData.phone}
-                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))}
+                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 30) }))}
                   placeholder="+57 300 123 4567"
                   inputMode="numeric"
+                  maxLength={30}
                   autoComplete="off"
                   className="h-9 text-sm shadow-sm" />
               </div>
@@ -355,9 +374,10 @@ export function ClientManagement() {
                 <Label htmlFor="phoneEmp" className="text-xs font-medium">Teléfono empresa</Label>
                 <Input id="phoneEmp"
                   value={formData.phone}
-                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))}
+                  onChange={e => setFormData(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 30) }))}
                   placeholder="Ej: 601 234 5678"
                   inputMode="numeric"
+                  maxLength={30}
                   autoComplete="off"
                   className="h-9 text-sm shadow-sm" />
               </div>

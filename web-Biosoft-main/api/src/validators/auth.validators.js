@@ -15,9 +15,19 @@ const registerSchema = z.object({
     .min(8, 'La contraseña debe tener al menos 8 caracteres')
     .max(72, 'La contraseña no puede exceder 72 caracteres'),
   roleId: z.coerce.number().int().positive(),
-  phone: z.string().max(30, 'El teléfono no puede exceder 30 caracteres').optional().or(z.literal('')),
+  phone: z
+    .string()
+    .max(30, 'El teléfono no puede exceder 30 caracteres')
+    .regex(/^\+?\d{7,30}$/, 'El teléfono solo debe contener números y puede iniciar con +')
+    .optional()
+    .or(z.literal('')),
   documentType: z.string().max(10, 'El tipo de documento no puede exceder 10 caracteres').optional().or(z.literal('')),
-  documentNumber: z.string().max(50, 'El número de documento no puede exceder 50 caracteres').optional().or(z.literal('')),
+  documentNumber: z
+    .string()
+    .max(20, 'El número de documento no puede exceder 20 caracteres')
+    .regex(/^\d{8,20}$/, 'El número de documento solo debe contener dígitos (8-20)')
+    .optional()
+    .or(z.literal('')),
 });
 
 const loginSchema = z.object({

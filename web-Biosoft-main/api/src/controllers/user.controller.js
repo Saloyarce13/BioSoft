@@ -11,10 +11,11 @@ const updateUserSchema = z.object({
   isActive:       z.coerce.boolean().optional(),
   documentType:   z.enum(['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA'], { message: 'Tipo de documento inválido' }).optional().nullable(),
   documentNumber: z.string()
-    .regex(/^\d{8,15}$/, 'El número de documento debe tener entre 8 y 15 dígitos numéricos')
+    .regex(/^\d{8,20}$/, 'El número de documento debe tener entre 8 y 20 dígitos numéricos')
+    .max(20)
     .optional()
     .nullable(),
-  phone:          z.string().regex(/^\+?\d{10,20}$/, 'El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)').max(20).optional().nullable(),
+  phone:          z.string().regex(/^\+?\d{7,30}$/, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().nullable(),
 });
 
 const changePasswordSchema = z.object({
@@ -311,7 +312,23 @@ const update = async (req, res) => {
       // Sincronizar documento/teléfono en Employee o Client si existen
       const docUpdate = {};
       if (documentType  !== undefined) docUpdate.documentType  = documentType;
-      if (documentNumber !== undefined) docUpdate.documentNumber = documentNumber;
+      if (documentNumber !== undefined) {
+        // Verificar inmutabilidad: si ya existe un documento asignado, solo cambiar si también cambia el tipo
+        const existingEmp = await tx.employee.findFirst({ where: { email: effectiveEmail, documentNumber: { not: null } } });
+        const existingCli = await tx.client.findFirst({ where: { email: effectiveEmail, documentNumber: { not: null } } });
+        const existingDocNum = existingEmp?.documentNumber || existingCli?.documentNumber;
+        const existingDocType = existingEmp?.documentType || existingCli?.documentType;
+
+        if (existingDocNum && documentNumber !== existingDocNum) {
+          if (!documentType || documentType === existingDocType) {
+            throw new Error('El número de documento no puede modificarse sin cambiar también el tipo de documento');
+          }
+        }
+        if (documentType && existingDocType && documentType !== existingDocType && !documentNumber) {
+          throw new Error('Para cambiar el tipo de documento también debe proporcionar el nuevo número de documento');
+        }
+        docUpdate.documentNumber = documentNumber;
+      }
       if (phone          !== undefined) docUpdate.phone          = phone;
 
       if (Object.keys(docUpdate).length > 0) {

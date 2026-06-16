@@ -157,6 +157,10 @@ export function UserManagement() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [originalDocType, setOriginalDocType] = useState('');
+  const [originalDocNumber, setOriginalDocNumber] = useState('');
+
+  const isDocLocked = (currentView === 'edit' && formData.documentType === originalDocType && originalDocNumber !== '');
 
   // Filtrar usuarios
   const filteredUsers = displayUsers.filter(user => {
@@ -191,6 +195,8 @@ export function UserManagement() {
     });
     setShowPassword(false);
     setShowConfirmPassword(false);
+    setOriginalDocType('');
+    setOriginalDocNumber('');
     setSelectedUser(null);
   };
 
@@ -406,6 +412,8 @@ export function UserManagement() {
       salary: '',
       position: '',
     });
+    setOriginalDocType(user.documentType || '');
+    setOriginalDocNumber(user.documentNumber || '');
     setShowPassword(false);
     setShowConfirmPassword(false);
     setCurrentView('edit');
@@ -496,9 +504,9 @@ export function UserManagement() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.email = 'Email inválido';
     if (!formData.documentType) errs.documentType = 'Obligatorio';
     if (!formData.documentNumber.trim()) errs.documentNumber = 'Obligatorio';
-    else if (!/^\d{8,15}$/.test(formData.documentNumber.trim())) errs.documentNumber = '8-15 dígitos numéricos';
+    else if (!/^\d{8,20}$/.test(formData.documentNumber.trim())) errs.documentNumber = '8-20 dígitos numéricos';
     if (!formData.phone.trim()) errs.phone = 'Obligatorio';
-    else if (!/^\+?\d{10,20}$/.test(formData.phone.trim())) errs.phone = '10-20 dígitos (puede incluir +)';
+    else if (!/^\+?\d{7,30}$/.test(formData.phone.trim())) errs.phone = '7-30 dígitos (puede incluir +)';
     if (!formData.role) errs.role = 'Obligatorio';
 
     // Validaciones específicas para empleados
@@ -600,10 +608,19 @@ export function UserManagement() {
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
-                      <Input id="docNum" value={formData.documentNumber}
-                        onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '') })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
-                        placeholder="1234567890" inputMode="numeric"
-                        className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''}`} />
+                      <div className="relative">
+                        <Input id="docNum" value={formData.documentNumber}
+                          onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '').slice(0, 20) })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
+                          placeholder="1234567890" inputMode="numeric" maxLength={20}
+                          disabled={isDocLocked}
+                          className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''} ${isDocLocked ? 'bg-muted text-muted-foreground' : ''}`} />
+                        {isDocLocked && (
+                          <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">
+                            <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      {isDocLocked && <p className="text-xs text-muted-foreground flex items-center gap-1"><Lock className="h-3 w-3" />Cambia el tipo de documento para modificar el número</p>}
                       {formErrors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.documentNumber}</p>}
                     </div>
                   </div>
@@ -643,8 +660,8 @@ export function UserManagement() {
                     <div className="space-y-1">
                       <Label htmlFor="phone" className="text-xs font-medium">Celular <span className="text-destructive">*</span></Label>
                       <Input id="phone" value={formData.phone}
-                        onChange={e => { const val = e.target.value.replace(/\D/g, ''); setFormData(p => ({ ...p, phone: val })); setFormErrors(p => ({ ...p, phone: '' })); }}
-                        placeholder="3001234567" inputMode="numeric"
+                        onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 30); setFormData(p => ({ ...p, phone: val })); setFormErrors(p => ({ ...p, phone: '' })); }}
+                        placeholder="3001234567" inputMode="numeric" maxLength={30}
                         className={`h-9 text-sm shadow-sm ${formErrors.phone ? 'border-destructive' : ''}`} />
                       {formErrors.phone && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.phone}</p>}
                     </div>
@@ -711,7 +728,7 @@ export function UserManagement() {
                         <div className="space-y-1">
                           <Label htmlFor="salary" className="text-xs font-medium">Salario (COP) <span className="text-destructive">*</span></Label>
                           <Input id="salary" type="number" min={0} value={formData.salary}
-                            onChange={e => { setFormData(p => ({ ...p, salary: e.target.value })); setFormErrors(p => ({ ...p, salary: '' })); }}
+                            onChange={e => { setFormData(p => ({ ...p, salary: e.target.value.replace(/\D/g, '') })); setFormErrors(p => ({ ...p, salary: '' })); }}
                             placeholder="Ej: 2000000"
                             className={`h-9 text-sm shadow-sm ${formErrors.salary ? 'border-destructive' : ''}`} />
                           {formErrors.salary && <p className="text-xs text-destructive flex items-center gap-1"><Info className="h-3 w-3" />{formErrors.salary}</p>}
