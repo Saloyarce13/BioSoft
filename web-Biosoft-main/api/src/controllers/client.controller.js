@@ -14,7 +14,7 @@ const VALID_DOC_TYPES = ['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA'];
 const createClientSchema = z.object({
   name:           z.string().min(2).max(150),
   email:          z.string().email().optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
-  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)').max(20).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
+  phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   address:        z.string().max(250).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   documentNumber: z.string()

@@ -424,15 +424,15 @@ export function ProviderManagement() {
     if (!formData.taxId.trim()) {
       toast.error('El número de documento es obligatorio'); return;
     }
-    const docMaxLen = formData.documentType === 'NIT' ? 10 : 15;
-    if (formData.taxId.length < 10 || formData.taxId.length > docMaxLen) {
-      toast.error(`El número de documento debe tener entre 10 y ${docMaxLen} dígitos`); return;
+    const docMaxLen = formData.documentType === 'NIT' ? 10 : 20;
+    if (formData.taxId.length < 1 || formData.taxId.length > docMaxLen) {
+      toast.error(`El número de documento debe tener entre 1 y ${docMaxLen} dígitos`); return;
     }
     if (!formData.phone.trim()) {
       toast.error('El número de contacto es obligatorio'); return;
     }
-    if (formData.phone.length < 10 || formData.phone.length > 12) {
-      toast.error('El número de contacto debe tener entre 10 y 12 dígitos'); return;
+    if (!/^\+?\d{7,30}$/.test(formData.phone)) {
+      toast.error('El número de contacto debe tener entre 7 y 30 dígitos (puede incluir +)'); return;
     }
 
     try {
@@ -471,15 +471,15 @@ export function ProviderManagement() {
     if (!formData.taxId.trim()) {
       toast.error('El número de documento es obligatorio'); return;
     }
-    const docMaxLen = formData.documentType === 'NIT' ? 10 : 15;
-    if (formData.taxId.length < 10 || formData.taxId.length > docMaxLen) {
-      toast.error(`El número de documento debe tener entre 10 y ${docMaxLen} dígitos`); return;
+    const docMaxLen = formData.documentType === 'NIT' ? 10 : 20;
+    if (formData.taxId.length < 1 || formData.taxId.length > docMaxLen) {
+      toast.error(`El número de documento debe tener entre 1 y ${docMaxLen} dígitos`); return;
     }
     if (!formData.phone.trim()) {
       toast.error('El número de contacto es obligatorio'); return;
     }
-    if (formData.phone.length < 10 || formData.phone.length > 12) {
-      toast.error('El número de contacto debe tener entre 10 y 12 dígitos'); return;
+    if (!/^\+?\d{7,30}$/.test(formData.phone)) {
+      toast.error('El número de contacto debe tener entre 7 y 30 dígitos (puede incluir +)'); return;
     }
 
     try {
@@ -1077,8 +1077,8 @@ export function ProviderManagement() {
               <Label htmlFor="phone" className="text-xs font-medium">
                 {formData.documentType === 'NIT' ? 'Teléfono empresa' : 'Número de Contacto'} <span className="text-destructive">*</span>
               </Label>
-              <Input id="phone" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 12); setFormData(prev => ({ ...prev, phone: val })); }} placeholder="Ej: 3001234567" required className="h-9 text-sm shadow-sm" maxLength={12} inputMode="numeric" />
-              <p className="text-xs text-muted-foreground">Solo números · mín. 10, máx. 12 dígitos</p>
+              <Input id="phone" value={formData.phone} onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 30); setFormData(prev => ({ ...prev, phone: val })); }} placeholder="Ej: 3001234567" required className="h-9 text-sm shadow-sm" maxLength={30} inputMode="numeric" />
+              <p className="text-xs text-muted-foreground">Solo números · mín. 7, máx. 30 dígitos</p>
             </div>
 
             {/* Dirección */}

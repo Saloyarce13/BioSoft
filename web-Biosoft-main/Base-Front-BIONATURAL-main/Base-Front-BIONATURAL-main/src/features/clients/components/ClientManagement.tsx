@@ -319,7 +319,7 @@ export function ClientManagement() {
                 onChange={e => setFormData(p => ({ ...p, name: e.target.value }))}
                 onBlur={() => touch('name')}
                 placeholder={formData.documentType === 'NIT' ? 'Ej: Empresa S.A.S.' : 'Ej: María González'}
-                maxLength={150}
+                maxLength={100}
                 className={`h-9 text-sm shadow-sm ${errors.name ? 'border-destructive' : ''}`} />
               {errors.name && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{errors.name}</p>}
             </div>
@@ -351,7 +351,7 @@ export function ClientManagement() {
                 onChange={e => setFormData(p => ({ ...p, email: e.target.value }))}
                 onBlur={() => touch('email')}
                 placeholder={formData.documentType === 'NIT' ? 'empresa@correo.com' : 'cliente@email.com'}
-                maxLength={150}
+                maxLength={100}
                 className={`h-9 text-sm shadow-sm ${errors.email ? 'border-destructive' : ''}`} />
               {errors.email && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{errors.email}</p>}
             </div>

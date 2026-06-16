@@ -26,8 +26,8 @@ const createEmployeeSchema = z.object({
   phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)').max(30),
   documentType:   z.enum(['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA'], { message: 'Tipo de documento inválido' }),
   documentNumber: z.string()
-    .min(1, 'El número de documento es obligatorio')
-    .max(15, 'Máximo 15 caracteres')
+    .min(8, 'El número de documento debe tener mínimo 8 dígitos')
+    .max(20, 'El número de documento no puede superar 20 dígitos')
     .regex(/^\d+$/, 'Solo se aceptan caracteres numéricos'),
   address:        z.string().max(250).optional().nullable(),
   birthDate:      z.string()
