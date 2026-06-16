@@ -26,6 +26,7 @@ export function AppHeader({ user, onLogout, onUserSidebarOpen }: AppHeaderProps)
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   return (
+    <>
     <header style={{
       position: 'sticky', top: 0, zIndex: 30,
       borderBottom: '1px solid #E5E5E2',
@@ -83,33 +84,34 @@ export function AppHeader({ user, onLogout, onUserSidebarOpen }: AppHeaderProps)
           </button>
         </div>
       </div>
+    </header>
 
-      {/* Diálogo de confirmación de logout */}
-      {confirmLogout && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.4)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ backgroundColor: 'white', borderRadius: 16, padding: '28px 32px', maxWidth: 360, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.15)', textAlign: 'center' }}>
-            <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: '#F4F4F2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <LogOut style={{ width: 22, height: 22, color: '#737370' }} />
-            </div>
-            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1A', margin: '0 0 8px' }}>¿Cerrar sesión?</h3>
-            <p style={{ fontSize: 13, color: '#737370', margin: '0 0 24px', lineHeight: 1.5 }}>Tu sesión se cerrará y deberás volver a iniciar sesión para acceder.</p>
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button
-                onClick={() => setConfirmLogout(false)}
-                style={{ flex: 1, height: 40, borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => { setConfirmLogout(false); onLogout?.(); }}
-                style={{ flex: 1, height: 40, borderRadius: 10, border: 'none', backgroundColor: '#374151', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
-              >
-                Cerrar sesión
-              </button>
-            </div>
+    {/* Diálogo de confirmación — fuera del header para cubrir todo incluyendo el sticky header */}
+    {confirmLogout && (
+      <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 99999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ backgroundColor: 'white', borderRadius: 16, padding: '28px 32px', maxWidth: 360, width: '90%', boxShadow: '0 20px 60px rgba(0,0,0,0.2)', textAlign: 'center' }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', backgroundColor: '#F4F4F2', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+            <LogOut style={{ width: 22, height: 22, color: '#737370' }} />
+          </div>
+          <h3 style={{ fontSize: 17, fontWeight: 700, color: '#1C1C1A', margin: '0 0 8px' }}>¿Cerrar sesión?</h3>
+          <p style={{ fontSize: 13, color: '#737370', margin: '0 0 24px', lineHeight: 1.5 }}>Tu sesión se cerrará y deberás volver a iniciar sesión para acceder.</p>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => setConfirmLogout(false)}
+              style={{ flex: 1, height: 40, borderRadius: 10, border: '1px solid #E5E5E2', backgroundColor: 'white', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => { setConfirmLogout(false); onLogout?.(); }}
+              style={{ flex: 1, height: 40, borderRadius: 10, border: 'none', backgroundColor: '#374151', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+            >
+              Cerrar sesión
+            </button>
           </div>
         </div>
-      )}
-    </header>
+      </div>
+    )}
+    </>
   );
 }
