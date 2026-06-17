@@ -811,7 +811,20 @@ export function UserManagement() {
 
   const tableColumns: Column<User>[] = [
     {
-      header: 'Usuario',
+      header: 'Documento',
+      accessor: (user) => (
+        user.documentType && user.documentNumber
+          ? (
+            <div className="text-sm">
+              <span className="font-medium">{user.documentType}</span>
+              <p className="text-muted-foreground text-xs">{user.documentNumber}</p>
+            </div>
+          )
+          : <span className="text-muted-foreground text-sm">—</span>
+      )
+    },
+    {
+      header: 'Nombre',
       accessor: (user) => {
         const isInactive = !user.isActive;
         return (
@@ -824,11 +837,22 @@ export function UserManagement() {
             </Avatar>
             <div className="min-w-0">
               <p className={`font-medium text-sm truncate ${isInactive ? 'text-muted-foreground' : ''}`}>{user.firstName} {user.lastName}</p>
-              <p className="text-xs text-muted-foreground truncate max-w-[180px]">{user.email}</p>
             </div>
           </div>
         );
       }
+    },
+    {
+      header: 'Email',
+      accessor: (user) => (
+        <span className="text-sm text-muted-foreground truncate max-w-[200px] block">{user.email}</span>
+      )
+    },
+    {
+      header: 'Teléfono',
+      accessor: (user) => (
+        <span className="text-sm">{user.phone || <span className="text-muted-foreground">—</span>}</span>
+      )
     },
     {
       header: 'Rol',
@@ -895,7 +919,7 @@ export function UserManagement() {
         description={`Mostrando ${filteredUsers.length} usuarios en total`}
         data={filteredUsers}
         columns={tableColumns}
-        searchableKeys={['firstName', 'lastName', 'email']}
+        searchableKeys={['firstName', 'lastName', 'email', 'documentNumber']}
         searchPlaceholder="Buscar por nombre o email..."
         itemsPerPage={ITEMS_PER_PAGE}
         isLoading={loading}
@@ -1040,15 +1064,13 @@ export function UserManagement() {
                   </div>
                 </div>
                 <div>
-                  <Label className="text-xs text-muted-foreground">Tipo Documento</Label>
+                  <Label className="text-xs text-muted-foreground">Documento</Label>
                   <p className="font-medium flex items-center gap-1 text-sm">
                     <CreditCard className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    {selectedUser.documentType || '—'}
+                    {selectedUser.documentType && selectedUser.documentNumber
+                      ? `${selectedUser.documentType}: ${selectedUser.documentNumber}`
+                      : '—'}
                   </p>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground">Nº Documento</Label>
-                  <p className="font-medium text-sm">{selectedUser.documentNumber || '—'}</p>
                 </div>
                 <div>
                   <Label className="text-xs text-muted-foreground">Dirección</Label>

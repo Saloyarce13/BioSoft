@@ -225,7 +225,7 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
                 { icon: Mail, label: 'Email', value: displayEmail },
                 { icon: Phone, label: 'Teléfono', value: clientData?.phone || null },
                 { icon: MapPin, label: 'Dirección', value: clientData?.address || null },
-                ...(clientData?.documentType || clientData?.documentNumber ? [{ icon: CreditCard, label: 'Documento', value: `${clientData?.documentType || ''} ${clientData?.documentNumber || ''}`.trim() }] : []),
+                ...(clientData?.documentType || clientData?.documentNumber ? [{ icon: CreditCard, label: 'Documento', value: clientData?.documentType && clientData?.documentNumber ? `${clientData.documentType}: ${clientData.documentNumber}` : (clientData?.documentNumber || clientData?.documentType || '') }] : []),
               ].map(({ icon: Icon, label, value }, i, arr) => (
                 <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 0', borderBottom: i < arr.length - 1 ? '1px solid #F4F4F2' : 'none' }}>
                   <div style={{ width: 34, height: 34, borderRadius: 9, backgroundColor: '#F0FDF4', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -284,7 +284,7 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Teléfono</Label>
-              <Input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '') }))} placeholder="3001234567" className="h-9 text-sm" inputMode="numeric" autoComplete="off" maxLength={15} />
+              <Input value={editForm.phone} onChange={e => setEditForm(p => ({ ...p, phone: e.target.value.replace(/\D/g, '').slice(0, 30) }))} placeholder="3001234567" className="h-9 text-sm" inputMode="numeric" autoComplete="off" maxLength={30} />
             </div>
             <div className="space-y-1">
               <Label className="text-xs">Dirección</Label>
