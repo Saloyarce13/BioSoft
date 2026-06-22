@@ -333,12 +333,13 @@ export default function App() {
     if (nextView) setCurrentView(nextView);
   }, []);
 
+  // Restaurar sesión al cargar la app (F5 / refresh)
   React.useEffect(() => {
+    // Si ya hay usuario en memoria, no hace falta
     if (user) return;
-    // No llamar auth/me en login/landing — evita el 401 en consola
-    if (currentView === 'login' || currentView === 'landing' || currentView === 'register') return;
-    // Si el usuario hizo logout intencionalmente, no restaurar la sesión
+    // Si el usuario hizo logout intencionalmente, no restaurar
     if (localStorage.getItem('bionatural_logged_out') === '1') return;
+
     apiFetch<any>('/auth/me', { ignoreAuthError: true })
       .then(res => {
         if (res.success) {
@@ -350,12 +351,13 @@ export default function App() {
           const normalizedRole = normalizeRole(roleName);
           setUser({ name: d.name, email: d.email, role: normalizedRole, permissions: rolePerms });
           if (normalizedRole === 'Cliente') {
-            if (currentView !== 'checkout') setCurrentView('store');
+            setCurrentView('store');
           } else {
             const pathView = getViewFromPath(window.location.pathname);
             setCurrentView(isAdminView(pathView) ? pathView! : 'dashboard');
           }
         }
+        // Si falla o no hay sesión → quedarse en landing/login (estado inicial)
       }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
