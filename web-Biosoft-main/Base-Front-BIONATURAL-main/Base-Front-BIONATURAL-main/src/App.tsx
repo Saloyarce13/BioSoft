@@ -193,19 +193,24 @@ export default function App() {
   const [clientView, setClientView] = useState<ClientView>('store');
   const { favorites, isFavorite, toggleFavorite } = useFavorites(user?.email || 'guest');
 
-  // Grupos del sidebar — cuál está expandido (solo uno a la vez)
-  const [expandedGroup, setExpandedGroup] = useState<string | null>(() => {
+  // Grupos del sidebar — múltiples pueden estar abiertos a la vez
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
     // Abrir el grupo que contiene la vista activa al iniciar
     const path = typeof window !== 'undefined' ? window.location.pathname : '/';
     const view = getViewFromPath(path);
+    const initial = new Set<string>();
     for (const g of SIDEBAR_GROUPS) {
-      if (g.children.some(c => c.id === view)) return g.id;
+      if (g.children.some(c => c.id === view)) initial.add(g.id);
     }
-    return null;
+    return initial;
   });
 
   const toggleGroup = (groupId: string) =>
-    setExpandedGroup(prev => prev === groupId ? null : groupId);
+    setOpenGroups(prev => {
+      const next = new Set(prev);
+      next.has(groupId) ? next.delete(groupId) : next.add(groupId);
+      return next;
+    });
 
   const normalizeRole = (role: string) => {
     const roleMap: Record<string, string> = {
@@ -288,7 +293,12 @@ export default function App() {
   React.useEffect(() => {
     for (const g of SIDEBAR_GROUPS) {
       if (g.children.some(c => c.id === currentView)) {
-        setExpandedGroup(g.id);
+        setOpenGroups(prev => {
+          if (prev.has(g.id)) return prev;
+          const next = new Set(prev);
+          next.add(g.id);
+          return next;
+        });
         return;
       }
     }
@@ -578,7 +588,7 @@ export default function App() {
                     const visibleChildren = group.children.filter(c => hasAccessToView(c.id));
                     if (visibleChildren.length === 0) return null;
 
-                    const isOpen = expandedGroup === group.id;
+                    const isOpen = openGroups.has(group.id);
                     const isGroupActive = visibleChildren.some(c => c.id === currentView);
 
                     return (
