@@ -118,10 +118,17 @@ export function ReportsAnalytics(): React.ReactElement {
     loadStats();
   }, []);
 
+  // Productos agotados (stock === 0) + críticos (stock <= minStock)
+  // Los agotados van primero, luego los críticos ordenados de menor a mayor stock
   const criticalStockProducts = stockProducts
-    .filter((product) => product.stock <= 15)
-    .sort((a, b) => a.stock - b.stock)
-    .slice(0, 5);
+    .filter((product) => product.stock === 0 || product.stock <= (product.minStock ?? 0))
+    .sort((a, b) => {
+      // Agotados primero
+      if (a.stock === 0 && b.stock !== 0) return -1;
+      if (b.stock === 0 && a.stock !== 0) return 1;
+      return a.stock - b.stock;
+    })
+    .slice(0, 10); // mostrar hasta 10
 
   const averageTicket = dashboardStats?.sales.count ? Math.round(dashboardStats.sales.totalPrice / dashboardStats.sales.count) : 0;
 
@@ -524,17 +531,29 @@ export function ReportsAnalytics(): React.ReactElement {
             <AlertTriangle className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {criticalStockProducts.length || '0'}
+            <div className="flex items-center gap-3 mb-1">
+              <div>
+                <span className="text-2xl font-bold text-red-600">
+                  {criticalStockProducts.filter(p => p.stock === 0).length}
+                </span>
+                <span className="text-xs text-muted-foreground ml-1">agotados</span>
+              </div>
+              <div className="h-6 w-px bg-border" />
+              <div>
+                <span className="text-2xl font-bold text-orange-600">
+                  {criticalStockProducts.filter(p => p.stock > 0).length}
+                </span>
+                <span className="text-xs text-muted-foreground ml-1">críticos</span>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground mb-3">Productos con stock bajo</p>
+            <p className="text-xs text-muted-foreground mb-3">Requieren reabastecimiento urgente</p>
             {criticalStockProducts.length > 0 && (
               <div className="space-y-1.5 border-t pt-3">
                 {criticalStockProducts.map(p => (
                   <div key={p.id} className="flex items-center justify-between gap-2">
                     <span className="text-xs text-foreground truncate flex-1">{p.name}</span>
                     <span className={`text-xs font-bold shrink-0 px-1.5 py-0.5 rounded ${p.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                      {p.stock} uds
+                      {p.stock === 0 ? 'Agotado' : `${p.stock} uds`}
                     </span>
                   </div>
                 ))}
