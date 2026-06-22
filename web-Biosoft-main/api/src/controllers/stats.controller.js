@@ -62,10 +62,12 @@ const dashboard = async (req, res) => {
 const stockAvailableByProduct = async (req, res) => {
   try {
     // Traer TODOS los productos activos (incluyendo agotados stock=0)
-    // El frontend filtra por stock <= minStock o stock === 0
     const products = await prisma.product.findMany({
       where: { isActive: true },
-      include: { category: { select: { id: true, name: true } } },
+      include: {
+        category: { select: { id: true, name: true } },
+        provider:  { select: { id: true, name: true } },  // proveedor principal
+      },
       orderBy: { stock: 'asc' }, // agotados y críticos primero
     });
     return res.status(200).json({ success: true, total: products.length, data: products });

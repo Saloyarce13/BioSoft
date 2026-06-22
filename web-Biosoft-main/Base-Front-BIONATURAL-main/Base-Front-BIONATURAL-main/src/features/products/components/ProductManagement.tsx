@@ -301,9 +301,24 @@ export function ProductManagement({
     return statusData?.color || 'bg-gray-100 text-gray-800';
   };
 
-  // Badge de stock
-  const getStockBadge = (stock: number, minStock: number) => {
+  // Badge de stock — si está agotado y tiene proveedor, es clickeable para ir a Compras
+  const getStockBadge = (stock: number, minStock: number, product?: any) => {
     if (stock === 0) {
+      const providerId = product?.providerId || product?.providers?.[0]?.providerId;
+      if (providerId) {
+        return (
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('app:goto-purchase', {
+              detail: { productId: Number(product.id), providerId: Number(providerId) }
+            }))}
+            title="Ir a Compras para reabastecer"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-100 text-red-800 text-xs font-semibold hover:bg-red-200 transition-colors cursor-pointer"
+          >
+            <XCircle className="h-3 w-3" />
+            Agotado
+          </button>
+        );
+      }
       return <Badge variant="destructive" className="flex items-center gap-1">
         <XCircle className="h-3 w-3" />
         Agotado
@@ -1313,7 +1328,7 @@ export function ProductManagement({
       accessor: (product) => (
         <div className="space-y-1">
           <p className="font-medium">{product.stock} unidades</p>
-          {getStockBadge(product.stock, product.minStock)}
+          {getStockBadge(product.stock, product.minStock, product)}
         </div>
       )
     },

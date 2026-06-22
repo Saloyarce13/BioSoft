@@ -382,11 +382,21 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Escuchar evento global de navegación rápida a compras (desde ProductManagement)
+  React.useEffect(() => {
+    const handleGotoPurchase = (e: Event) => {
+      const { productId, providerId } = (e as CustomEvent).detail;
+      goToPurchaseWithProduct(productId, providerId);
+    };
+    window.addEventListener('app:goto-purchase', handleGotoPurchase);
+    return () => window.removeEventListener('app:goto-purchase', handleGotoPurchase);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Refrescar datos automáticamente cuando la pestaña vuelve al foco
   React.useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && user) {
-        // Disparar evento global para que los módulos recarguen sus datos
         window.dispatchEvent(new CustomEvent('app:refresh'));
       }
     };
