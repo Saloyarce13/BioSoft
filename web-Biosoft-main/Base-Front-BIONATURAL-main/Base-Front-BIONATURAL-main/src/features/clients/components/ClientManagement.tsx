@@ -14,6 +14,7 @@ import { DataTable, Column } from '../../../shared/components/DataTable';
 import { toast } from 'sonner';
 import { getClients, createClient, updateClient, deleteClient, toggleClientStatus } from '../../../lib/api';
 import { useDocumentTypesClient } from '../../../shared/contexts/SystemConfigContext';
+import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import {
   Users, Plus, Edit, Trash2, Eye,
   ChevronLeft, Mail, Phone,
@@ -95,6 +96,7 @@ export function ClientManagement() {
   };
 
   useEffect(() => { load(); }, []);
+  useAutoRefresh(load);
 
   const errors = {
     name: touched.name && !formData.name.trim() ? 'El nombre es obligatorio' : '',

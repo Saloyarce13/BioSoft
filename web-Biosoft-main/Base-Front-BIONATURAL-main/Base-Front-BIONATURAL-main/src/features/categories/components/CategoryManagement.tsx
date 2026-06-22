@@ -16,6 +16,7 @@ import {
   getCategories, createCategory, updateCategory,
   deleteCategory, toggleCategoryStatus
 } from '../../../lib/api';
+import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import {
   Plus, Search, Edit, Trash2, Tag, Eye,
   RefreshCw, ChevronLeft, ChevronRight,
@@ -123,6 +124,7 @@ export function CategoryManagement() {
   };
 
   useEffect(() => { load(); }, []);
+  useAutoRefresh(load);
 
   const filtered = categories.filter(c => {
     const matchStatus = statusFilter === 'all' || (statusFilter === 'active' ? c.isActive : !c.isActive);

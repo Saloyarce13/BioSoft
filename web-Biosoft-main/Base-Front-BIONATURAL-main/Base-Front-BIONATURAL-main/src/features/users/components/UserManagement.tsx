@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Badge } from '../../../components/ui/badge';
@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { usePersistedState, STORAGE_KEYS } from '../../../shared/utils/storage';
 import { apiFetch, getUsers, getConsolidatedUsers, updateUser, deleteUser, getRoles, toggleUserStatus } from '../../../lib/api';
 import { useDocumentTypesUser } from '../../../shared/contexts/SystemConfigContext';
+import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import { 
   Plus, 
   Search, 
@@ -97,41 +98,41 @@ export function UserManagement() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>('list');
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        localStorage.removeItem(STORAGE_KEYS.USERS);
-        const [usersRes, rolesRes] = await Promise.all([getConsolidatedUsers(), getRoles()]);
-        if (usersRes.success) {
-          const mapped: User[] = usersRes.data.map((u: any) => ({
-            id: String(u.id),
-            firstName: u.name?.split(' ')[0] || '',
-            lastName: u.name?.split(' ').slice(1).join(' ') || '',
-            email: u.email || '',
-            phone: (u.phone && !u.phone.includes('@')) ? u.phone : '',
-            address: '',
-            city: '',
-            documentType: (u.documentType as User['documentType']) || 'Cédula',
-            documentNumber: u.documentNumber || '',
-            role: u.role || 'Sin rol',
-            origin: u.origin || 'Usuario',
-            isActive: u.isActive,
-            lastLogin: 'N/A',
-            createdAt: u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-CO') : '',
-            permissions: [],
-          }));
-          setApiUsers(mapped);
-        }
-        if (rolesRes.success) setApiRoles(rolesRes.data.filter((r: any) => r.isActive));
-      } catch {
-        toast.error('Error al cargar usuarios');
-      } finally {
-        setLoading(false);
+  const loadUsers = useCallback(async () => {
+    try {
+      setLoading(true);
+      localStorage.removeItem(STORAGE_KEYS.USERS);
+      const [usersRes, rolesRes] = await Promise.all([getConsolidatedUsers(), getRoles()]);
+      if (usersRes.success) {
+        const mapped: User[] = usersRes.data.map((u: any) => ({
+          id: String(u.id),
+          firstName: u.name?.split(' ')[0] || '',
+          lastName: u.name?.split(' ').slice(1).join(' ') || '',
+          email: u.email || '',
+          phone: (u.phone && !u.phone.includes('@')) ? u.phone : '',
+          address: '',
+          city: '',
+          documentType: (u.documentType as User['documentType']) || 'Cédula',
+          documentNumber: u.documentNumber || '',
+          role: u.role || 'Sin rol',
+          origin: u.origin || 'Usuario',
+          isActive: u.isActive,
+          lastLogin: 'N/A',
+          createdAt: u.createdAt ? new Date(u.createdAt).toLocaleDateString('es-CO') : '',
+          permissions: [],
+        }));
+        setApiUsers(mapped);
       }
-    };
-    load();
+      if (rolesRes.success) setApiRoles(rolesRes.data.filter((r: any) => r.isActive));
+    } catch {
+      toast.error('Error al cargar usuarios');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => { loadUsers(); }, [loadUsers]);
+  useAutoRefresh(loadUsers);
 
   const displayUsers = apiUsers.filter(u => u.origin !== 'Proveedor');
 

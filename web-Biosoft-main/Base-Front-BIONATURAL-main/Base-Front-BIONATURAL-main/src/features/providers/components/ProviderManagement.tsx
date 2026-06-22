@@ -21,6 +21,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { getProviders, createProvider, updateProvider, deleteProvider } from '../../../lib/api';
 import { useDocumentTypesProvider } from '../../../shared/contexts/SystemConfigContext';
+import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import {
   Plus,
   Search,
@@ -328,6 +329,7 @@ export function ProviderManagement() {
   useEffect(() => {
     loadProviders();
   }, []);
+  useAutoRefresh(loadProviders);
 
   // Siempre usar apiProviders como fuente de verdad
   const providers = apiProviders;

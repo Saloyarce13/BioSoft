@@ -16,6 +16,7 @@ import { Switch } from '../../../components/ui/switch';
 import { DataTable, Column } from '../../../shared/components/DataTable';
 import { toast } from 'sonner';
 import { getSales, getClients, getProducts, createSale, apiFetch } from '../../../lib/api';
+import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import { useSaleStatuses } from '../../../shared/contexts/SystemConfigContext';
 import {
   Row, Col, Card as AntCard, Table as AntTable, Select as AntSelect,
@@ -220,6 +221,7 @@ export function SalesManagement({ user }: { user?: { role: string; permissions: 
   }, []);
 
   useEffect(() => { load(); }, [load]);
+  useAutoRefresh(load);
 
   // Solo mostrar ventas completadas (y opcionalmente canceladas/anuladas)
   const filtered = sales.filter(s => {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from './components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
 import { Badge } from './components/ui/badge';
@@ -204,7 +204,7 @@ export default function App() {
 
   const handleLogin = (userData: { name: string; email: string; role: string; permissions?: string[] }) => {
     // Limpiar flag de logout para permitir restauración de sesión en futuros recargas
-    sessionStorage.removeItem('logged_out');
+    localStorage.removeItem('bionatural_logged_out');
     const normalizedRole = normalizeRole(userData.role);
     const normalized = { ...userData, role: normalizedRole, permissions: userData.permissions || [] };
     setUser(normalized);
@@ -227,7 +227,7 @@ export default function App() {
       // Si el token ya expiró, limpiamos estado local igualmente.
     }
     // Marcar sesión como cerrada intencionalmente para que no se restaure automáticamente
-    sessionStorage.setItem('logged_out', '1');
+    localStorage.setItem('bionatural_logged_out', '1');
     setUser(null);
     setCurrentView('landing');
     setLandingKey(k => k + 1);
@@ -320,7 +320,7 @@ export default function App() {
     // No llamar auth/me en login/landing — evita el 401 en consola
     if (currentView === 'login' || currentView === 'landing' || currentView === 'register') return;
     // Si el usuario hizo logout intencionalmente, no restaurar la sesión
-    if (sessionStorage.getItem('logged_out') === '1') return;
+    if (localStorage.getItem('bionatural_logged_out') === '1') return;
     apiFetch<any>('/auth/me', { ignoreAuthError: true })
       .then(res => {
         if (res.success) {
@@ -341,6 +341,18 @@ export default function App() {
       }).catch(() => {});
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Refrescar datos automáticamente cuando la pestaña vuelve al foco
+  React.useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && user) {
+        // Disparar evento global para que los módulos recarguen sus datos
+        window.dispatchEvent(new CustomEvent('app:refresh'));
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [user]);
 
   const getUserInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
 

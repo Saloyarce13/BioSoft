@@ -15,6 +15,7 @@ import { DataTable, Column } from '../../../shared/components/DataTable';
 import { toast } from 'sonner';
 import { getPurchases, getProviders, getProducts, createPurchase, updatePurchaseStatus, apiFetch } from '../../../lib/api';
 import { usePurchaseStatuses } from '../../../shared/contexts/SystemConfigContext';
+import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import {
   Row, Col, Card as AntCard, Table as AntTable, Select as AntSelect,
   InputNumber, Button as AntButton, Typography, Divider, Space,
@@ -435,8 +436,7 @@ export function PurchaseManagement() {
   };
 
   useEffect(() => { load(); }, []);
-
-  // Modal PDF
+  useAutoRefresh(load);
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfDataUri, setPdfDataUri] = useState('');
   const [pdfPurchase, setPdfPurchase] = useState<ApiPurchase | null>(null);

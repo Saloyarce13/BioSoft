@@ -13,6 +13,7 @@ import { cn } from '../../../components/ui/utils';
 import { DataTable, Column } from '../../../shared/components/DataTable';
 import { toast } from 'sonner';
 import { getSales, getClients, getProducts, createSale, updateSaleStatus, apiFetch } from '../../../lib/api';
+import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import {
   Row, Col, Card as AntCard, Table as AntTable, Select as AntSelect,
   InputNumber, Button as AntButton, Typography, Divider, Space,
@@ -202,6 +203,7 @@ export function OrderManagement({ user }: { user?: { role: string; permissions: 
   };
 
   useEffect(() => { load(); }, []);
+  useAutoRefresh(load);
 
   const filtered = useMemo(() => {
     return sales.filter(s => {

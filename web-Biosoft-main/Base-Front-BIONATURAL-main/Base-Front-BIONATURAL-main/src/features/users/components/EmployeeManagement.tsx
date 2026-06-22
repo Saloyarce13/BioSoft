@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { DataTable, Column } from '../../../shared/components/DataTable';
 import { getEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../../lib/api';
 import { useDocumentTypesEmployee } from '../../../shared/contexts/SystemConfigContext';
+import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import { 
   Plus, 
   Edit, 
@@ -104,8 +105,7 @@ export function EmployeeManagement() {
 
   useEffect(() => {
     loadEmployees();
-    import('../../../lib/api').then(({ getRoles }) => {
-      getRoles().then(res => {
+    import('../../../lib/api').then(({ getRoles }) => {      getRoles().then(res => {
         if (res.success) {
           const roles = (res.data as any[])
             .filter(r => r.isActive && !['user', 'cliente', 'invitado'].includes(r.name.toLowerCase()))
@@ -119,6 +119,7 @@ export function EmployeeManagement() {
       }).catch(() => {});
     });
   }, []);
+  useAutoRefresh(loadEmployees);
 
   const [formData, setFormData] = useState({
     firstName: '',
