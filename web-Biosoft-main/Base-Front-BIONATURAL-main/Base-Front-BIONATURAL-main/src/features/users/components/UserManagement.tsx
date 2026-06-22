@@ -505,7 +505,11 @@ export function UserManagement() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) errs.email = 'Email inválido';
     if (!formData.documentType) errs.documentType = 'Obligatorio';
     if (!formData.documentNumber.trim()) errs.documentNumber = 'Obligatorio';
-    else if (!/^\d{8,20}$/.test(formData.documentNumber.trim())) errs.documentNumber = '8-20 dígitos numéricos';
+    else if (formData.documentType === 'PAS') {
+      if (!/^[A-Za-z0-9]{8,15}$/.test(formData.documentNumber.trim())) errs.documentNumber = '8-15 caracteres alfanuméricos';
+    } else {
+      if (!/^\d{8,20}$/.test(formData.documentNumber.trim())) errs.documentNumber = '8-20 dígitos numéricos';
+    }
     if (!formData.phone.trim()) errs.phone = 'Obligatorio';
     else if (!/^\+?\d{7,30}$/.test(formData.phone.trim())) errs.phone = '7-30 dígitos (puede incluir +)';
     if (!formData.role) errs.role = 'Obligatorio';
@@ -611,8 +615,17 @@ export function UserManagement() {
                       <Label htmlFor="docNum" className="text-xs font-medium">Nº documento <span className="text-destructive">*</span></Label>
                       <div className="relative">
                         <Input id="docNum" value={formData.documentNumber}
-                          onChange={e => { setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '').slice(0, 20) })); setFormErrors(p => ({ ...p, documentNumber: '' })); }}
-                          placeholder="1234567890" inputMode="numeric" maxLength={20}
+                          onChange={e => {
+                            const isPas = formData.documentType === 'PAS';
+                            const val = isPas
+                              ? e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 15).toUpperCase()
+                              : e.target.value.replace(/\D/g, '').slice(0, 20);
+                            setFormData(p => ({ ...p, documentNumber: val }));
+                            setFormErrors(p => ({ ...p, documentNumber: '' }));
+                          }}
+                          placeholder={formData.documentType === 'PAS' ? 'Ej: AB123456' : '1234567890'}
+                          inputMode={formData.documentType === 'PAS' ? 'text' : 'numeric'}
+                          maxLength={formData.documentType === 'PAS' ? 15 : 20}
                           disabled={isDocLocked}
                           className={`h-9 text-sm shadow-sm ${formErrors.documentNumber ? 'border-destructive' : ''} ${isDocLocked ? 'bg-muted text-muted-foreground' : ''}`} />
                         {isDocLocked && (

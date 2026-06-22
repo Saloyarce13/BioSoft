@@ -1020,10 +1020,17 @@ export function ProviderManagement() {
                 </Label>
                 <div className="relative">
                   <Input id="taxId" value={formData.taxId}
-                    onChange={e => { const val = e.target.value.replace(/\D/g, '').slice(0, 20); setFormData(prev => ({ ...prev, taxId: val })); }}
-                    placeholder={docPlaceholder} required
+                    onChange={e => {
+                      const isPas = formData.documentType === 'PAS';
+                      const val = isPas
+                        ? e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 15).toUpperCase()
+                        : e.target.value.replace(/\D/g, '').slice(0, 20);
+                      setFormData(prev => ({ ...prev, taxId: val }));
+                    }}
+                    placeholder={formData.documentType === 'PAS' ? 'Ej: AB123456' : docPlaceholder} required
                     className={`h-9 text-sm shadow-sm ${isDocLocked ? 'bg-muted text-muted-foreground' : ''}`}
-                    maxLength={20} inputMode="numeric"
+                    maxLength={formData.documentType === 'PAS' ? 15 : 20}
+                    inputMode={formData.documentType === 'PAS' ? 'text' : 'numeric'}
                     disabled={isDocLocked} />
                   {isDocLocked && (
                     <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">

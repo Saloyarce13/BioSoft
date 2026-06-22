@@ -5,12 +5,16 @@ const { validate } = require('../lib/validate');
 const { validateEmailExists } = require('../lib/validateEmail');
 
 // Regex de validaciones
-const PHONE_REGEX = /^\+?\d{7,30}$/; // 7-30 dígitos, permite '+' al inicio
-const DOC_REGEX   = /^\d{8,20}$/;     // 8-20 dígitos numéricos
-const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/; // mayúscula + número + especial
+const PHONE_REGEX = /^\+?\d{7,30}$/;
+const DOC_REGEX_NUMERIC  = /^\d{8,20}$/;
+const DOC_REGEX_PASSPORT = /^[A-Za-z0-9]{8,15}$/;
 
-// Tipos de documento válidos (alineados con frontend y otros controladores)
 const VALID_DOC_TYPES = ['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA'];
+
+function validateDocNumber(docType, docNumber) {
+  if (!docNumber) return true;
+  return docType === 'PAS' ? DOC_REGEX_PASSPORT.test(docNumber) : DOC_REGEX_NUMERIC.test(docNumber);
+}
 
 const isAdult = (val) => {
   const birth = new Date(val);
@@ -25,10 +29,7 @@ const createEmployeeSchema = z.object({
   email:          z.string().email(),
   phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 10 y 20 dígitos (puede incluir +)').max(30),
   documentType:   z.enum(['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA'], { message: 'Tipo de documento inválido' }),
-  documentNumber: z.string()
-    .min(8, 'El número de documento debe tener mínimo 8 dígitos')
-    .max(20, 'El número de documento no puede superar 20 dígitos')
-    .regex(/^\d+$/, 'Solo se aceptan caracteres numéricos'),
+  documentNumber: z.string().min(8).max(20),
   address:        z.string().max(250).optional().nullable(),
   birthDate:      z.string()
     .min(1, 'La fecha de nacimiento es obligatoria')
@@ -44,10 +45,7 @@ const updateEmployeeSchema = z.object({
   email:          z.string().email().optional(),
   phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().nullable(),
   documentType:   z.enum(['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA']).optional().nullable(),
-  documentNumber: z.string()
-    .min(8).max(20)
-    .regex(/^\d+$/, 'Solo se aceptan caracteres numéricos')
-    .optional().nullable(),
+  documentNumber: z.string().min(8).max(20).optional().nullable(),
   address:        z.string().max(250).optional().nullable(),
   birthDate:      z.string()
     .refine(val => !val || isAdult(val), 'El empleado debe ser mayor de 18 años')
@@ -125,9 +123,12 @@ const create = async (req, res) => {
 
     const { fullName, email, phone, documentType, documentNumber, address, birthDate, position, salary, hireDate, password } = parsed.data;
 
+    // Validar formato del documento según el tipo
+    if (documentNumber && !validateDocNumber(documentType, documentNumber)) {
+      return res.status(400).json({ success: false, message: documentType === 'PAS' ? 'El pasaporte debe tener entre 8 y 15 caracteres alfanuméricos' : 'El número de documento debe tener entre 8 y 20 dígitos numéricos' });
+    }
+
     if (email) {
-      const existing = await prisma.employee.findUnique({ where: { email } });
-      if (existing) return res.status(409).json({ success: false, message: 'Este email de empleado ya existe' });
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser) return res.status(409).json({ success: false, message: 'Ya existe un usuario con este email' });
 

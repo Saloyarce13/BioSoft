@@ -11,8 +11,7 @@ const updateUserSchema = z.object({
   isActive:       z.coerce.boolean().optional(),
   documentType:   z.enum(['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA'], { message: 'Tipo de documento inválido' }).optional().nullable(),
   documentNumber: z.string()
-    .regex(/^\d{8,20}$/, 'El número de documento debe tener entre 8 y 20 dígitos numéricos')
-    .max(20)
+    .min(8).max(20)
     .optional()
     .nullable(),
   phone:          z.string().regex(/^\+?\d{7,30}$/, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().nullable(),

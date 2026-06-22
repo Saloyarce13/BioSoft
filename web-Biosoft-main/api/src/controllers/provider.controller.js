@@ -2,16 +2,24 @@ const { z } = require('zod');
 const prisma = require('../lib/prisma');
 const { validate } = require('../lib/validate');
 
-// Regex de validaciones (proveedores pueden tener NIT con guión o solo dígitos)
-const DOC_NUMBER_REGEX = /^[\d\-]{1,20}$/; // dígitos y guión, máx 20 (NIT: 900123456-1)
-const PHONE_REGEX      = /^\+?\d{7,30}$/; // 7-30 dígitos, permite '+' al inicio
+// Regex de validaciones
+// PAS: alfanumérico 8-15. Otros: solo dígitos 8-20. Proveedores NIT pueden tener guión.
+const DOC_NUMBER_REGEX_PASSPORT = /^[A-Za-z0-9]{8,15}$/;
+const DOC_NUMBER_REGEX_NUMERIC  = /^[\d\-]{1,20}$/;
+const PHONE_REGEX      = /^\+?\d{7,30}$/;
 const VALID_DOC_TYPES  = ['NIT', 'CC', 'CE', 'PAS', 'RUT'];
+
+function validateProviderDoc(docType, docNumber) {
+  if (!docNumber) return true;
+  if (docType === 'PAS') return DOC_NUMBER_REGEX_PASSPORT.test(docNumber);
+  return DOC_NUMBER_REGEX_NUMERIC.test(docNumber);
+}
 
 const createProviderSchema = z.object({
   name:           z.string().min(2).max(150),
   businessName:   z.string().max(200).optional().nullable(),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().nullable(),
-  documentNumber: z.string().regex(DOC_NUMBER_REGEX, 'Número de documento inválido (máx 20 caracteres, solo dígitos y guión)').max(20).optional().nullable(),
+  documentNumber: z.string().max(20).optional().nullable(),
   contactPerson:  z.string().max(150).optional().nullable(),
   email:          z.string().email('Email inválido').max(150).optional().nullable(),
   phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().nullable(),
@@ -24,7 +32,7 @@ const updateProviderSchema = z.object({
   name:           z.string().min(2).max(150).optional(),
   businessName:   z.string().max(200).optional().nullable(),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().nullable(),
-  documentNumber: z.string().regex(DOC_NUMBER_REGEX, 'Número de documento inválido (máx 20 caracteres, solo dígitos y guión)').max(20).optional().nullable(),
+  documentNumber: z.string().max(20).optional().nullable(),
   contactPerson:  z.string().max(150).optional().nullable(),
   email:          z.string().email('Email inválido').max(150).optional().nullable(),
   phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().nullable(),
@@ -114,6 +122,11 @@ const create = async (req, res) => {
     if (email) {
       const existing = await prisma.provider.findUnique({ where: { email } });
       if (existing) return res.status(409).json({ success: false, message: 'Este email de proveedor ya existe' });
+    }
+
+    // Validar documento
+    if (documentNumber && !validateProviderDoc(documentType, documentNumber)) {
+      return res.status(400).json({ success: false, message: documentType === 'PAS' ? 'El pasaporte debe tener entre 8 y 15 caracteres alfanuméricos' : 'El número de documento es inválido (máx 20 caracteres, solo dígitos y guión para NIT)' });
     }
 
     // Validar documento duplicado al crear

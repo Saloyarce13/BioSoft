@@ -519,8 +519,18 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input id="reg-docNum" value={registerForm.documentNumber}
-                    onChange={e => setRegisterForm(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '').slice(0, 15) }))}
-                    placeholder="Número" className="pl-10 h-9 text-sm" maxLength={15} inputMode="numeric" autoComplete="off" />
+                    onChange={e => {
+                      const isPas = registerForm.documentType === 'PAS';
+                      const val = isPas
+                        ? e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 15).toUpperCase()
+                        : e.target.value.replace(/\D/g, '').slice(0, 20);
+                      setRegisterForm(p => ({ ...p, documentNumber: val }));
+                    }}
+                    placeholder={registerForm.documentType === 'PAS' ? 'Ej: AB123456' : 'Número'}
+                    className="pl-10 h-9 text-sm"
+                    maxLength={registerForm.documentType === 'PAS' ? 15 : 20}
+                    inputMode={registerForm.documentType === 'PAS' ? 'text' : 'numeric'}
+                    autoComplete="off" />
                 </div>
               </div>
             </div>

@@ -275,13 +275,19 @@ export function ClientManagement() {
                 </Label>
                 <div className="relative">
                   <Input id="docNum" value={formData.documentNumber}
-                    onChange={e => setFormData(p => ({ ...p, documentNumber: e.target.value.replace(/\D/g, '').slice(0, 20) }))}
+                    onChange={e => {
+                      const isPas = formData.documentType === 'PAS';
+                      const val = isPas
+                        ? e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 15).toUpperCase()
+                        : e.target.value.replace(/\D/g, '').slice(0, 20);
+                      setFormData(p => ({ ...p, documentNumber: val }));
+                    }}
                     onBlur={() => touch('documentNumber')}
-                    placeholder={formData.documentType === 'NIT' ? 'Ej: 900123456' : '1234567890'}
-                    inputMode="numeric"
+                    placeholder={formData.documentType === 'NIT' ? 'Ej: 900123456' : formData.documentType === 'PAS' ? 'Ej: AB123456' : '1234567890'}
+                    inputMode={formData.documentType === 'PAS' ? 'text' : 'numeric'}
                     autoComplete="off"
                     disabled={isDocLocked}
-                    maxLength={20}
+                    maxLength={formData.documentType === 'PAS' ? 15 : 20}
                     className={`h-9 text-sm shadow-sm ${errors.documentNumber ? 'border-destructive' : ''} ${isDocLocked ? 'bg-muted text-muted-foreground' : ''}`} />
                   {isDocLocked && (
                     <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none">

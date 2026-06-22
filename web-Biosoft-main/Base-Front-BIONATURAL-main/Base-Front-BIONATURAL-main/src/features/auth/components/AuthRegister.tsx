@@ -101,10 +101,14 @@ export function AuthRegister({ onLogin, onBack }: AuthRegisterProps) {
     if (!form.email.trim()) errors.email = 'El email es obligatorio';
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Email inválido';
   }
-  if (touched.phone && form.phone && !/^\d+$/.test(form.phone)) errors.phone = 'Solo números, sin espacios';
+  if (touched.phone && form.phone && !/^\d{7,30}$/.test(form.phone)) errors.phone = '7-30 dígitos numéricos';
   if (touched.documentNumber) {
     if (!form.documentNumber.trim()) errors.documentNumber = 'El número es obligatorio';
-    else if (!/^\d{1,15}$/.test(form.documentNumber)) errors.documentNumber = '1-15 dígitos numéricos';
+    else if (form.documentType === 'PAS') {
+      if (!/^[A-Za-z0-9]{8,15}$/.test(form.documentNumber)) errors.documentNumber = '8-15 caracteres alfanuméricos';
+    } else {
+      if (!/^\d{8,20}$/.test(form.documentNumber)) errors.documentNumber = '8-20 dígitos numéricos';
+    }
   }
   if (touched.password) {
     if (!form.password) errors.password = 'La contraseña es obligatoria';
@@ -231,8 +235,12 @@ export function AuthRegister({ onLogin, onBack }: AuthRegisterProps) {
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                 <Input id="phone" value={form.phone}
-                  onChange={e => set('phone', e.target.value.replace(/\D/g, ''))} onBlur={() => touch('phone')}
-                  placeholder="3001234567" className={`pl-10 h-9 text-sm shadow-sm ${errors.phone ? 'border-destructive' : ''}`} />
+                  onChange={e => set('phone', e.target.value.replace(/\D/g, '').slice(0, 30))}
+                  onBlur={() => touch('phone')}
+                  placeholder="3001234567"
+                  inputMode="numeric"
+                  maxLength={30}
+                  className={`pl-10 h-9 text-sm shadow-sm ${errors.phone ? 'border-destructive' : ''}`} />
               </div>
               {errors.phone && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{errors.phone}</p>}
             </div>
@@ -253,9 +261,17 @@ export function AuthRegister({ onLogin, onBack }: AuthRegisterProps) {
                 <div className="relative">
                   <CreditCard className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input id="docNum" value={form.documentNumber}
-                    onChange={e => set('documentNumber', e.target.value.replace(/\D/g, '').slice(0, 15))}
+                    onChange={e => {
+                      const isPas = form.documentType === 'PAS';
+                      const val = isPas
+                        ? e.target.value.replace(/[^A-Za-z0-9]/g, '').slice(0, 15).toUpperCase()
+                        : e.target.value.replace(/\D/g, '').slice(0, 20);
+                      set('documentNumber', val);
+                    }}
                     onBlur={() => touch('documentNumber')}
-                    placeholder="1234567890" maxLength={15}
+                    placeholder={form.documentType === 'PAS' ? 'Ej: AB123456' : '1234567890'}
+                    inputMode={form.documentType === 'PAS' ? 'text' : 'numeric'}
+                    maxLength={form.documentType === 'PAS' ? 15 : 20}
                     className={`pl-10 h-9 text-sm shadow-sm ${errors.documentNumber ? 'border-destructive' : ''}`} />
                 </div>
                 {errors.documentNumber && <p className="text-xs text-destructive flex items-center gap-1"><AlertTriangle className="h-3 w-3" />{errors.documentNumber}</p>}

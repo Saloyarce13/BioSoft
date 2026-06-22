@@ -5,11 +5,20 @@ const { validate } = require('../lib/validate');
 const { validateEmailExists } = require('../lib/validateEmail');
 
 // Regex de validaciones
-const DOC_NUMBER_REGEX = /^\d{8,20}$/; // 8-20 dígitos numéricos
+// Pasaporte: alfanumérico 8-15 chars. Resto de tipos: solo dígitos 8-20
+const DOC_NUMBER_REGEX_NUMERIC  = /^\d{8,20}$/;
+const DOC_NUMBER_REGEX_PASSPORT = /^[A-Za-z0-9]{8,15}$/;
 const PHONE_REGEX      = /^\+?\d{7,30}$/; // 7-30 dígitos, permite '+' al inicio
 
 // Tipos de documento válidos (alineados con el frontend)
 const VALID_DOC_TYPES = ['CC', 'CE', 'PAS', 'NIT', 'TI', 'PA'];
+
+// Valida el número de documento según el tipo
+function validateDocNumber(docType, docNumber) {
+  if (!docNumber) return true; // opcional
+  if (docType === 'PAS') return DOC_NUMBER_REGEX_PASSPORT.test(docNumber);
+  return DOC_NUMBER_REGEX_NUMERIC.test(docNumber);
+}
 
 const createClientSchema = z.object({
   name:           z.string().min(2).max(150),
@@ -17,12 +26,7 @@ const createClientSchema = z.object({
   phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   address:        z.string().max(250).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
-  documentNumber: z.string()
-    .regex(DOC_NUMBER_REGEX, 'El número de documento debe tener entre 8 y 20 dígitos numéricos')
-    .max(20)
-    .optional()
-    .or(z.literal(''))
-    .transform(v => v === '' ? undefined : v),
+  documentNumber: z.string().max(20).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
 });
 
 const updateClientSchema = z.object({
@@ -31,11 +35,7 @@ const updateClientSchema = z.object({
   phone:          z.string().regex(PHONE_REGEX, 'El teléfono debe tener entre 7 y 30 dígitos (puede incluir +)').max(30).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   address:        z.string().max(250).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
   documentType:   z.enum(VALID_DOC_TYPES, { message: 'Tipo de documento inválido' }).optional().or(z.literal('')).transform(v => v === '' ? undefined : v),
-  documentNumber: z.string()
-    .regex(DOC_NUMBER_REGEX, 'El número de documento debe tener entre 8 y 20 dígitos numéricos')
-    .max(20)
-    .or(z.literal(''))
-    .transform(v => v === '' ? undefined : v),
+  documentNumber: z.string().max(20).or(z.literal('')).transform(v => v === '' ? undefined : v),
   isActive:       z.coerce.boolean().optional(),
 });
 
@@ -112,6 +112,9 @@ const create = async (req, res) => {
       }
     }
     if (documentNumber) {
+      if (!validateDocNumber(documentType, documentNumber)) {
+        return res.status(400).json({ success: false, message: documentType === 'PAS' ? 'El pasaporte debe tener entre 8 y 15 caracteres alfanuméricos' : 'El número de documento debe tener entre 8 y 20 dígitos numéricos' });
+      }
       const existingDoc = await prisma.client.findFirst({ where: { documentNumber } });
       if (existingDoc) return res.status(409).json({ success: false, message: 'Ya existe un cliente con este número de documento' });
     }
@@ -174,6 +177,9 @@ const update = async (req, res) => {
       if (existing) return res.status(409).json({ success: false, message: 'Este email de cliente ya existe' });
     }
     if (documentNumber && documentNumber !== client.documentNumber) {
+      if (!validateDocNumber(documentType || client.documentType, documentNumber)) {
+        return res.status(400).json({ success: false, message: (documentType || client.documentType) === 'PAS' ? 'El pasaporte debe tener entre 8 y 15 caracteres alfanuméricos' : 'El número de documento debe tener entre 8 y 20 dígitos numéricos' });
+      }
       // El número de documento solo puede cambiar si también cambia el tipo de documento
       if (!documentType || documentType === client.documentType) {
         return res.status(400).json({
