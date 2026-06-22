@@ -30,7 +30,7 @@ import { ClientFavorites } from './features/clients/components/ClientFavorites';
 import { ProductDetailModal } from './features/products/pages/ProductDetailPage';
 import { CheckoutFlow } from './features/checkout/pages/CheckoutPage';
 import { Footer } from './features/system/pages/FooterPage';
-import { SIDEBAR_ITEMS } from './routes';
+import { SIDEBAR_ITEMS, SIDEBAR_TOP, SIDEBAR_GROUPS, SidebarGroup as SidebarGroupType } from './routes';
 import { useSidebarItems } from './shared/contexts/SystemConfigContext';
 import { HomeView } from './features/dashboard/pages/AdminDashboardPage';
 import { ClientStorefront } from './features/dashboard/pages/StoreFrontPage';
@@ -42,7 +42,7 @@ import {
   Building2, FileText, ShoppingBag, Calendar, TrendingUp, Star, MapPin,
   Phone, Mail, Search, ArrowLeft, ChevronDown, TrendingDown, AlertTriangle,
   Clock, Repeat, Crown, UserCheck, DollarSign, Briefcase, Heart,
-  Shield, Bell,
+  Shield, Bell, ChevronRight, Tag,
 } from 'lucide-react';
 import { Toaster } from './components/ui/sonner';
 import { Input } from './components/ui/input';
@@ -53,7 +53,7 @@ import { apiFetch } from './lib/api';
 
 // Mapa de nombres de iconos a componentes Lucide — fuera del componente para evitar recreación
 const ICON_MAP: Record<string, React.ElementType> = {
-  Home, BarChart3, Users, Briefcase, Shield, Building2, Package, ShoppingCart, Truck, FileText, DollarSign,
+  Home, BarChart3, Users, Briefcase, Shield, Building2, Package, ShoppingCart, Truck, FileText, DollarSign, Tag,
 };
 
 const ADMIN_VIEW_PATHS: Record<string, string> = {
@@ -193,6 +193,20 @@ export default function App() {
   const [clientView, setClientView] = useState<ClientView>('store');
   const { favorites, isFavorite, toggleFavorite } = useFavorites(user?.email || 'guest');
 
+  // Grupos del sidebar — cuál está expandido (solo uno a la vez)
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(() => {
+    // Abrir el grupo que contiene la vista activa al iniciar
+    const path = typeof window !== 'undefined' ? window.location.pathname : '/';
+    const view = getViewFromPath(path);
+    for (const g of SIDEBAR_GROUPS) {
+      if (g.children.some(c => c.id === view)) return g.id;
+    }
+    return null;
+  });
+
+  const toggleGroup = (groupId: string) =>
+    setExpandedGroup(prev => prev === groupId ? null : groupId);
+
   const normalizeRole = (role: string) => {
     const roleMap: Record<string, string> = {
       administrador: 'Administrador',
@@ -270,11 +284,15 @@ export default function App() {
     return roleMatch || permMatch;
   };
 
+  // Abrir el grupo que contiene la vista activa cuando cambia currentView
   React.useEffect(() => {
-    if (!user) return;
-    if (user.role === 'Cliente') return;
-    if (isAdminView(currentView) && !hasAccessToView(currentView)) setCurrentView('dashboard');
-  }, [user, currentView]);
+    for (const g of SIDEBAR_GROUPS) {
+      if (g.children.some(c => c.id === currentView)) {
+        setExpandedGroup(g.id);
+        return;
+      }
+    }
+  }, [currentView]);
 
   React.useEffect(() => {
     const handlePopState = () => {
@@ -539,14 +557,66 @@ export default function App() {
               <div className="mx-3 mb-3 h-px bg-border" />
               <SidebarGroupContent>
                 <SidebarMenu>
-                  {filteredSidebarItems.map((item) => (
+                  {/* Ítem suelto: Estadísticas */}
+                  {SIDEBAR_TOP.filter(item => hasAccessToView(item.id)).map(item => (
                     <SidebarMenuItem key={item.id}>
-                      <SidebarMenuButton onClick={() => setCurrentView(item.id)} isActive={currentView === item.id} className="w-full rounded-lg mx-1 px-3 py-2 text-sm font-medium transition-colors">
-                        {(() => { const IconComp = ICON_MAP[item.icon] || Package; return <IconComp className="h-4 w-4 shrink-0" />; })()}
+                      <SidebarMenuButton
+                        onClick={() => setCurrentView(item.id)}
+                        isActive={currentView === item.id}
+                        className="w-full rounded-lg mx-1 px-3 py-2 text-sm font-medium transition-colors"
+                      >
+                        <item.icon className="h-4 w-4 shrink-0" />
                         <span>{item.label}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
+
+                  {/* Grupos colapsables */}
+                  {SIDEBAR_GROUPS.map(group => {
+                    const visibleChildren = group.children.filter(c => hasAccessToView(c.id));
+                    if (visibleChildren.length === 0) return null;
+
+                    const isOpen = expandedGroup === group.id;
+                    const isGroupActive = visibleChildren.some(c => c.id === currentView);
+
+                    return (
+                      <SidebarMenuItem key={group.id}>
+                        {/* Cabecera del grupo */}
+                        <SidebarMenuButton
+                          onClick={() => toggleGroup(group.id)}
+                          isActive={isGroupActive && !isOpen}
+                          className="w-full rounded-lg mx-1 px-3 py-2 text-sm font-medium transition-colors"
+                        >
+                          <group.icon className="h-4 w-4 shrink-0" />
+                          <span className="flex-1">{group.label}</span>
+                          {isOpen
+                            ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform" />
+                            : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform" />
+                          }
+                        </SidebarMenuButton>
+
+                        {/* Subítems */}
+                        {isOpen && (
+                          <div className="ml-4 mt-0.5 mb-1 border-l border-border pl-2 space-y-0.5">
+                            {visibleChildren.map(child => (
+                              <button
+                                key={child.id}
+                                onClick={() => setCurrentView(child.id)}
+                                className={`w-full flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm transition-colors
+                                  ${currentView === child.id
+                                    ? 'bg-primary/10 text-primary font-medium'
+                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                  }`}
+                              >
+                                <child.icon className="h-3.5 w-3.5 shrink-0" />
+                                <span>{child.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </SidebarMenuItem>
+                    );
+                  })}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
