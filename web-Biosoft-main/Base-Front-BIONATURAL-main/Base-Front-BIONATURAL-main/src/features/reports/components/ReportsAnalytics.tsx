@@ -19,7 +19,8 @@ import {
   Star,
   AlertTriangle,
   CheckCircle,
-  Building2
+  Building2,
+  ShoppingBag,
 } from 'lucide-react';
 
 
@@ -71,7 +72,7 @@ type StockProduct = {
   category?: { id: number; name: string };
 };
 
-export function ReportsAnalytics(): React.ReactElement {
+export function ReportsAnalytics({ onGoToPurchase }: { onGoToPurchase?: (productId: number, providerId: number) => void } = {}): React.ReactElement {
   const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedReport, setSelectedReport] = useState('dashboard');
@@ -552,9 +553,20 @@ export function ReportsAnalytics(): React.ReactElement {
                 {criticalStockProducts.map(p => (
                   <div key={p.id} className="flex items-center justify-between gap-2">
                     <span className="text-xs text-foreground truncate flex-1">{p.name}</span>
-                    <span className={`text-xs font-bold shrink-0 px-1.5 py-0.5 rounded ${p.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
-                      {p.stock === 0 ? 'Agotado' : `${p.stock} uds`}
-                    </span>
+                    {p.stock === 0 && onGoToPurchase && p.provider?.id ? (
+                      <button
+                        onClick={() => onGoToPurchase(p.id, p.provider.id)}
+                        title="Ir a Compras para reabastecer"
+                        className="text-xs font-bold shrink-0 px-1.5 py-0.5 rounded bg-red-100 text-red-700 hover:bg-red-200 flex items-center gap-1 transition-colors cursor-pointer"
+                      >
+                        <ShoppingBag className="h-3 w-3" />
+                        Agotado
+                      </button>
+                    ) : (
+                      <span className={`text-xs font-bold shrink-0 px-1.5 py-0.5 rounded ${p.stock === 0 ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
+                        {p.stock === 0 ? 'Agotado' : `${p.stock} uds`}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

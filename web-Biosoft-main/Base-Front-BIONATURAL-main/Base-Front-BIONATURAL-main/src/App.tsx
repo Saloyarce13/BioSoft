@@ -212,6 +212,16 @@ export default function App() {
       return next;
     });
 
+  // Navegación rápida a compras desde dashboard (producto agotado)
+  const [purchaseQuickStart, setPurchaseQuickStart] = useState<{ productId: number; providerId: number } | null>(null);
+
+  const goToPurchaseWithProduct = (productId: number, providerId: number) => {
+    setPurchaseQuickStart({ productId, providerId });
+    setCurrentView('purchases');
+    // Limpiar después de que PurchaseManagement lo consuma
+    setTimeout(() => setPurchaseQuickStart(null), 2000);
+  };
+
   const normalizeRole = (role: string) => {
     const roleMap: Record<string, string> = {
       administrador: 'Administrador',
@@ -536,14 +546,17 @@ export default function App() {
       case 'landing':   return <LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} />;
       case 'home':
       case 'dashboard':
-      case 'reports':   return <DashboardReportsView />;
+      case 'reports':   return <DashboardReportsView onGoToPurchase={goToPurchaseWithProduct} />;
       case 'users':     return <UserManagement />;
       case 'employees': return <EmployeeManagement />;
       case 'roles':     return <RoleManagement />;
       case 'providers': return <ProviderManagement />;
       case 'products':  return <ProductManagement />;
       case 'categories':return <CategoryManagement />;
-      case 'purchases': return <PurchaseManagement />;
+      case 'purchases': return <PurchaseManagement
+          initialProductId={purchaseQuickStart?.productId}
+          initialProviderId={purchaseQuickStart?.providerId}
+        />;
       case 'clients':   return <ClientManagement />;
       case 'orders':    return <OrderManagement user={user} />;
       case 'sales':     return <SalesManagement user={user} />;
@@ -649,6 +662,6 @@ export default function App() {
   );
 }
 
-function DashboardReportsView() {
-  return <div className="space-y-6"><ReportsAnalytics /></div>;
+function DashboardReportsView({ onGoToPurchase }: { onGoToPurchase?: (productId: number, providerId: number) => void }) {
+  return <div className="space-y-6"><ReportsAnalytics onGoToPurchase={onGoToPurchase} /></div>;
 }

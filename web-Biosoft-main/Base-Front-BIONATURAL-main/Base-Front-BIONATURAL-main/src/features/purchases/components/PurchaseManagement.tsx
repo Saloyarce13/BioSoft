@@ -324,7 +324,10 @@ async function generatePurchasePDF(purchase: ApiPurchase): Promise<string> {
 }
 
 // ── Componente principal ───────────────────────────────────────────────────────
-export function PurchaseManagement() {
+export function PurchaseManagement({ initialProductId, initialProviderId }: {
+  initialProductId?: number;
+  initialProviderId?: number;
+} = {}) {
   const purchaseStatuses = usePurchaseStatuses();
   // Construir STATUS_MAP desde la BD
   const STATUS_MAP: Record<string, { label: string; color: string; iconName: string }> = Object.fromEntries(
@@ -437,6 +440,36 @@ export function PurchaseManagement() {
 
   useEffect(() => { load(); }, []);
   useAutoRefresh(load);
+
+  // Si se llegó desde "Agotado" en el dashboard, abrir formulario con proveedor+producto preseleccionado
+  useEffect(() => {
+    if (!initialProviderId || products.length === 0 || providers.length === 0) return;
+    const pid = String(initialProviderId);
+    handleProviderChange(pid);
+    setView('create');
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialProviderId, products.length, providers.length]);
+
+  // Cuando cargan los productos del proveedor y hay un initialProductId, agregarlo al carrito
+  useEffect(() => {
+    if (!initialProductId || providerProducts.length === 0) return;
+    const prod = providerProducts.find((p: any) => p.id === initialProductId);
+    if (!prod) return;
+    // Solo agregar si no está ya en el carrito
+    setCart(prev => {
+      if (prev.find(c => c.productId === prod.id)) return prev;
+      return [...prev, {
+        productId: prod.id,
+        productName: prod.name,
+        sku: prod.sku || '',
+        quantity: 1,
+        unitPrice: Number(prod.cost) || Number(prod.price) || 0,
+        lineTotal: Number(prod.cost) || Number(prod.price) || 0,
+        minStock: prod.minStock || 0,
+      }];
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [providerProducts, initialProductId]);
   const [pdfModalOpen, setPdfModalOpen] = useState(false);
   const [pdfDataUri, setPdfDataUri] = useState('');
   const [pdfPurchase, setPdfPurchase] = useState<ApiPurchase | null>(null);
