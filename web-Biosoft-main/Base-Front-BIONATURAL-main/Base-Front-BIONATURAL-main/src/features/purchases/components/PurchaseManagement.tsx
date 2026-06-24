@@ -29,6 +29,7 @@ import {
 // ── Tipos ──────────────────────────────────────────────────────────────────────
 interface ApiPurchase {
   id: number;
+  invoiceNumber?: string | null;
   status: 'REGISTERED' | 'COMPLETED' | 'CANCELLED' | 'ANNULED';
   totalPrice: number;
   notes: string | null;
