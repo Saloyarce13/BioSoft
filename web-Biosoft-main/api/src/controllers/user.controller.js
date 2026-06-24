@@ -434,6 +434,14 @@ const changePassword = async (req, res) => {
     const isValid = await bcrypt.compare(currentPassword, user.password);
     if (!isValid) return res.status(401).json({ success: false, message: 'Contraseña actual incorrecta' });
 
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'La nueva contraseña no puede ser igual a tu contraseña actual.'
+      });
+    }
+
     const hashedNew = await bcrypt.hash(newPassword, 10);
     await prisma.user.update({ where: { id: Number(req.params.id) }, data: { password: hashedNew } });
 

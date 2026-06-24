@@ -470,6 +470,14 @@ const changePassword = async (req, res) => {
       });
     }
 
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'La nueva contraseña no puede ser igual a tu contraseña actual.'
+      });
+    }
+
     // Encriptar nueva contraseña
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
 
@@ -713,6 +721,22 @@ const passwordResetConfirm = async (req, res) => {
 
     if (!record) {
       return res.status(400).json({ success: false, message: 'Código inválido o expirado' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { password: true }
+    });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    }
+
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'La nueva contraseña no puede ser igual a tu contraseña actual.'
+      });
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
