@@ -242,6 +242,7 @@ model SaleItem {
 
 model Purchase {
   id              Int      @id @default(autoincrement())
+  invoiceNumber   String?  @db.VarChar(100)
   totalPrice      Float    @default(0)
   status          String   @default("REGISTERED") @db.VarChar(30)
   notes           String?  @db.VarChar(500)

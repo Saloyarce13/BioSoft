@@ -48,6 +48,7 @@ const removeItemsSchema = z.object({
 
 const changeStatusSchema = z.object({
   status: z.enum([PurchaseStatus.REGISTERED, PurchaseStatus.COMPLETED, PurchaseStatus.CANCELLED, PurchaseStatus.ANNULED]),
+  invoiceNumber: z.string().optional().nullable(),
 });
 
 const getReqUserId = (req) => {
@@ -317,7 +318,7 @@ const changeStatus = async (req, res) => {
     const purchaseId = Number(req.params.id);
     const parsed = validate(changeStatusSchema, req.body);
     if (!parsed.ok) return res.status(400).json({ success: false, message: parsed.error });
-    const { status: targetStatus } = parsed.data;
+    const { status: targetStatus, invoiceNumber } = parsed.data;
 
     const userId = getReqUserId(req);
 
@@ -339,6 +340,12 @@ const changeStatus = async (req, res) => {
 
     if (!allowed) {
       return res.status(400).json({ success: false, message: 'Transición de estado no permitida. Una orden completada no puede anularse.' });
+    }
+
+    if (targetStatus === PurchaseStatus.COMPLETED) {
+      if (!invoiceNumber || typeof invoiceNumber !== 'string' || invoiceNumber.trim() === '') {
+        return res.status(400).json({ success: false, message: 'El número de factura es obligatorio para completar la compra.' });
+      }
     }
 
     const items = await prisma.purchaseItem.findMany({
@@ -369,7 +376,13 @@ const changeStatus = async (req, res) => {
         });
       }
 
-      await tx.purchase.update({ where: { id: purchaseId }, data: { status: targetStatus } });
+      await tx.purchase.update({
+        where: { id: purchaseId },
+        data: {
+          status: targetStatus,
+          ...(targetStatus === PurchaseStatus.COMPLETED ? { invoiceNumber: invoiceNumber.trim() } : {}),
+        },
+      });
     });
 
     const purchaseFull = await prisma.purchase.findUnique({

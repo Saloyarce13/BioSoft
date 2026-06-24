@@ -508,7 +508,7 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
   const dataForTable = filtered.map(p => ({
     ...p,
     providerName: p.provider?.name || '',
-    orderNumber: `#${p.id}`
+    orderNumber: p.invoiceNumber || `#${p.id}`
   }));
 
   // ── Carrito ────────────────────────────────────────────────────────────────
@@ -593,7 +593,21 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
   // ── Cambiar estado ─────────────────────────────────────────────────────────
   const handleChangeStatus = async (id: number, status: string) => {
     try {
-      const res = await updatePurchaseStatus(String(id), status);
+      let invoiceNumber = undefined;
+      if (status === 'COMPLETED') {
+        const val = window.prompt('Ingrese el número de la factura para completar la compra:');
+        if (val === null) {
+          // El usuario canceló el diálogo
+          return;
+        }
+        if (val.trim() === '') {
+          toast.error('El número de la factura es obligatorio para confirmar la compra.');
+          return;
+        }
+        invoiceNumber = val.trim();
+      }
+
+      const res = await updatePurchaseStatus(String(id), status, invoiceNumber);
       if (res.success) {
         toast.success(res.message);
         await load();
@@ -908,7 +922,7 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
               <ChevronLeft className="h-4 w-4 mr-1" /> Volver
             </Button>
             <div>
-              <h1 className="text-xl font-semibold">Orden #{selectedPurchase.id}</h1>
+              <h1 className="text-xl font-semibold">Orden {selectedPurchase.invoiceNumber || `#${selectedPurchase.id}`}</h1>
               <p className="text-sm text-muted-foreground">
                 {new Date(selectedPurchase.purchasedAt).toLocaleDateString('es-CO', { dateStyle: 'long' })}
               </p>
@@ -946,7 +960,7 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
                   <AlertDialogHeader>
                     <AlertDialogTitle>¿Cancelar esta orden?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      La orden #{selectedPurchase.id} será cancelada. Esta acción no se puede deshacer.
+                      La orden {selectedPurchase.invoiceNumber || `#${selectedPurchase.id}`} será cancelada. Esta acción no se puede deshacer.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -1119,8 +1133,8 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
         data={dataForTable}
         columns={[
           {
-            header: '# Orden',
-            accessor: (p: any) => <span className="font-mono text-sm font-medium">#{p.id}</span>
+            header: '# Orden / Factura',
+            accessor: (p: any) => <span className="font-mono text-sm font-medium">{p.invoiceNumber || `#${p.id}`}</span>
           },
           {
             header: 'Proveedor',
@@ -1177,7 +1191,7 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>¿Cancelar orden #{p.id}?</AlertDialogTitle>
+                    <AlertDialogTitle>¿Cancelar orden {p.invoiceNumber || `#${p.id}`}?</AlertDialogTitle>
                     <AlertDialogDescription>Esta acción no se puede deshacer.</AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

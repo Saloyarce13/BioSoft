@@ -241,10 +241,10 @@ export const createPurchase = async (purchase: any) => {
   });
 };
 
-export const updatePurchaseStatus = async (id: string, status: string) => {
+export const updatePurchaseStatus = async (id: string, status: string, invoiceNumber?: string) => {
   return apiFetch<any>(`/purchases/${id}/status`, {
     method: 'PATCH',
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, invoiceNumber }),
   });
 };
 
