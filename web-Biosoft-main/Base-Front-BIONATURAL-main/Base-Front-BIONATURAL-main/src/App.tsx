@@ -184,6 +184,10 @@ export default function App() {
     if (typeof window === 'undefined') return 'landing';
     return getViewFromPath(window.location.pathname) || 'landing';
   });
+  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('bionatural_logged_out') !== '1';
+  });
   const [landingKey, setLandingKey] = useState(0);
   const [user, setUser] = useState<{ name: string; email: string; role: string; permissions: string[] } | null>(null);
   const { cartItems, addToCart, updateCartQuantity, removeFromCart, clearCart, cartItemsCount } = useCart();
@@ -356,9 +360,15 @@ export default function App() {
   // Restaurar sesión al cargar la app (F5 / refresh)
   React.useEffect(() => {
     // Si ya hay usuario en memoria, no hace falta
-    if (user) return;
+    if (user) {
+      setIsCheckingAuth(false);
+      return;
+    }
     // Si el usuario hizo logout intencionalmente, no restaurar
-    if (localStorage.getItem('bionatural_logged_out') === '1') return;
+    if (localStorage.getItem('bionatural_logged_out') === '1') {
+      setIsCheckingAuth(false);
+      return;
+    }
 
     apiFetch<any>('/auth/me', { ignoreAuthError: true })
       .then(res => {
@@ -377,8 +387,17 @@ export default function App() {
             setCurrentView(isAdminView(pathView) ? pathView! : 'dashboard');
           }
         }
-        // Si falla o no hay sesión → quedarse en landing/login (estado inicial)
-      }).catch(() => {});
+      })
+      .catch(() => {
+        // En caso de error, si la vista actual es una vista de administración, volver al login
+        const pathView = getViewFromPath(window.location.pathname);
+        if (isAdminView(pathView)) {
+          setCurrentView('login');
+        }
+      })
+      .finally(() => {
+        setIsCheckingAuth(false);
+      });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -405,6 +424,22 @@ export default function App() {
   }, [user]);
 
   const getUserInitials = (name: string) => name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+  if (isCheckingAuth) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#F9F9F8', padding: 16 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, maxWidth: 320, textAlign: 'center' }}>
+          <div style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: '#E8F5E9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Leaf style={{ width: 32, height: 32, color: '#3A7D44' }} className="animate-spin" />
+          </div>
+          <div>
+            <h3 style={{ fontSize: 20, fontWeight: 700, color: '#1C1C1A', letterSpacing: '-0.02em', margin: '0 0 4px 0' }}>Bionatural</h3>
+            <p style={{ fontSize: 13, color: '#737370', margin: 0 }}>Cargando sesión...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (currentView === 'landing') {
     return <div><LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} onRegisterOpen={() => setCurrentView('register')} /></div>;
