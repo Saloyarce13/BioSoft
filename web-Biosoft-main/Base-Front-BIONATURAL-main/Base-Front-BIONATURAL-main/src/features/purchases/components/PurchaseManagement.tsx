@@ -350,6 +350,11 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
   const [selectedPurchase, setSelectedPurchase] = useState<ApiPurchase | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
+  // Estados para confirmación con número de factura
+  const [invoiceModalOpen, setInvoiceModalOpen] = useState(false);
+  const [invoiceNumberInput, setInvoiceNumberInput] = useState('');
+  const [confirmingPurchaseId, setConfirmingPurchaseId] = useState<number | null>(null);
+
   // Formulario nueva compra
   const [providerId, setProviderId] = useState('');
   const [notes, setNotes] = useState('');
@@ -594,21 +599,14 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
   // ── Cambiar estado ─────────────────────────────────────────────────────────
   const handleChangeStatus = async (id: number, status: string) => {
     try {
-      let invoiceNumber = undefined;
       if (status === 'COMPLETED') {
-        const val = window.prompt('Ingrese el número de la factura para completar la compra:');
-        if (val === null) {
-          // El usuario canceló el diálogo
-          return;
-        }
-        if (val.trim() === '') {
-          toast.error('El número de la factura es obligatorio para confirmar la compra.');
-          return;
-        }
-        invoiceNumber = val.trim();
+        setConfirmingPurchaseId(id);
+        setInvoiceNumberInput('');
+        setInvoiceModalOpen(true);
+        return;
       }
 
-      const res = await updatePurchaseStatus(String(id), status, invoiceNumber);
+      const res = await updatePurchaseStatus(String(id), status);
       if (res.success) {
         toast.success(res.message);
         await load();
@@ -618,6 +616,27 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
         }
       }
     } catch (err: any) { toast.error(err?.message || 'Error al cambiar estado'); }
+  };
+
+  const handleConfirmCompleted = async () => {
+    if (!confirmingPurchaseId || !invoiceNumberInput.trim()) return;
+
+    try {
+      const res = await updatePurchaseStatus(String(confirmingPurchaseId), 'COMPLETED', invoiceNumberInput.trim());
+      if (res.success) {
+        toast.success(res.message);
+        setInvoiceModalOpen(false);
+        setConfirmingPurchaseId(null);
+        setInvoiceNumberInput('');
+        await load();
+        if (selectedPurchase?.id === confirmingPurchaseId) {
+          const fresh = await apiFetch<any>(`/purchases/${confirmingPurchaseId}`);
+          if (fresh.success) setSelectedPurchase(fresh.data);
+        }
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Error al cambiar estado');
+    }
   };
 
   // Productos filtrados para búsqueda — solo los del proveedor seleccionado
@@ -1261,6 +1280,48 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Factura para Completar Compra */}
+      <Dialog open={invoiceModalOpen} onOpenChange={setInvoiceModalOpen}>
+        <DialogContent className="max-w-md w-full flex flex-col p-6 gap-4">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
+              <FileText className="h-5 w-5 text-primary" />
+              Confirmar Recepción de Compra
+            </DialogTitle>
+            <DialogDescription className="text-sm text-muted-foreground">
+              Para completar la orden, por favor ingrese el número de factura entregado por el proveedor.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <Label htmlFor="invoice-number" className="text-sm font-semibold">
+              Número de Factura <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="invoice-number"
+              value={invoiceNumberInput}
+              onChange={(e) => setInvoiceNumberInput(e.target.value)}
+              placeholder="Ej: FAC-12345"
+              className="w-full"
+              autoFocus
+            />
+          </div>
+
+          <DialogFooter className="flex gap-2 sm:justify-end mt-2">
+            <Button variant="outline" onClick={() => setInvoiceModalOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmCompleted}
+              disabled={!invoiceNumberInput.trim()}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Completar Compra
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
