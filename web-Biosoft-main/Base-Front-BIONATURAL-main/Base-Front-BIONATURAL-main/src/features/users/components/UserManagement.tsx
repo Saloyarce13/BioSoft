@@ -323,6 +323,19 @@ export function UserManagement() {
       const rawId = String(selectedUser.id).replace(/^(user-|emp-|cli-|prov-)/, '');
       const res = await updateUser(rawId, updatedData);
       if (res.success) {
+        // Si se especificó una nueva contraseña, actualizarla
+        if (formData.password) {
+          try {
+            await apiFetch(`/users/${rawId}/reset-password`, {
+              method: 'PATCH',
+              body: JSON.stringify({ newPassword: formData.password })
+            });
+          } catch (passwordErr: any) {
+            toast.error(`Usuario actualizado, pero falló el cambio de contraseña: ${passwordErr?.message}`);
+            return;
+          }
+        }
+
         const updatedUser = {
           ...selectedUser,
           firstName: formData.firstName,

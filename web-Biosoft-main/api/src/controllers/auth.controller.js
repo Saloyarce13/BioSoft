@@ -463,6 +463,7 @@ const changePassword = async (req, res) => {
 
     // Verificar contraseña actual
     const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+    logger.info(`changePassword: currentPassword verified = ${isValidPassword}`);
     if (!isValidPassword) {
       return res.status(400).json({
         success: false,
@@ -471,6 +472,7 @@ const changePassword = async (req, res) => {
     }
 
     const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    logger.info(`changePassword: isSamePassword = ${isSamePassword}`);
     if (isSamePassword) {
       return res.status(400).json({
         success: false,
@@ -732,6 +734,7 @@ const passwordResetConfirm = async (req, res) => {
     }
 
     const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    logger.info(`passwordResetConfirm: isSamePassword = ${isSamePassword}`);
     if (isSamePassword) {
       return res.status(400).json({
         success: false,
