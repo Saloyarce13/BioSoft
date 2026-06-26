@@ -186,10 +186,20 @@ export default function App() {
   });
   const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return localStorage.getItem('bionatural_logged_out') !== '1';
+    if (localStorage.getItem('bionatural_logged_out') === '1') return false;
+    if (localStorage.getItem('bionatural_user')) return false;
+    return true;
   });
   const [landingKey, setLandingKey] = useState(0);
-  const [user, setUser] = useState<{ name: string; email: string; role: string; permissions: string[] } | null>(null);
+  const [user, setUser] = useState<{ name: string; email: string; role: string; permissions: string[] } | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const stored = localStorage.getItem('bionatural_user');
+    try {
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  });
   const { cartItems, addToCart, updateCartQuantity, removeFromCart, clearCart, cartItemsCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -357,13 +367,17 @@ export default function App() {
     if (nextView) setCurrentView(nextView);
   }, []);
 
+  // Sincronizar el estado del usuario con localStorage para persistencia en F5/refresh
+  React.useEffect(() => {
+    if (user) {
+      localStorage.setItem('bionatural_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('bionatural_user');
+    }
+  }, [user]);
+
   // Restaurar sesión al cargar la app (F5 / refresh)
   React.useEffect(() => {
-    // Si ya hay usuario en memoria, no hace falta
-    if (user) {
-      setIsCheckingAuth(false);
-      return;
-    }
     // Si el usuario hizo logout intencionalmente, no restaurar
     if (localStorage.getItem('bionatural_logged_out') === '1') {
       setIsCheckingAuth(false);
@@ -389,7 +403,8 @@ export default function App() {
         }
       })
       .catch(() => {
-        // En caso de error, si la vista actual es una vista de administración, volver al login
+        // En caso de error (p.ej. token expirado en servidor), limpiar datos locales y volver a login si corresponde
+        setUser(null);
         const pathView = getViewFromPath(window.location.pathname);
         if (isAdminView(pathView)) {
           setCurrentView('login');
