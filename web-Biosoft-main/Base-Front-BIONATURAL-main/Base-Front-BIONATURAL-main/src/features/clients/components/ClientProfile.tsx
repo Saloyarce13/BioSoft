@@ -113,8 +113,16 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
       setPwForm({ current: '', new: '', confirm: '' });
       setIsChangingPassword(false);
       toast.success('Contraseña actualizada');
-    } catch (err: any) { toast.error(err?.message || 'Error al cambiar contraseña'); }
-    finally { setSaving(false); }
+    } catch (err: any) {
+      const msg = err?.message || '';
+      if (msg.includes('igual a tu contraseña actual') || msg.includes('contraseña anterior')) {
+        toast.error('¡Seguridad! No puedes usar tu contraseña anterior. Por favor elige una nueva contraseña.');
+      } else {
+        toast.error(msg || 'Error al cambiar contraseña');
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   const displayName = userData?.name || clientData?.name || user.name;

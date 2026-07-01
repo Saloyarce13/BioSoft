@@ -227,7 +227,12 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
       setCodeVerified(false); setCodeError('');
       setCurrentView('login');
     } catch (error: any) {
-      toast.error(error?.message || 'Error al actualizar la contraseña.');
+      const msg = error?.message || '';
+      if (msg.includes('igual a tu contraseña actual') || msg.includes('contraseña anterior')) {
+        toast.error('¡Seguridad! No puedes usar tu contraseña anterior. Por favor elige una nueva contraseña.');
+      } else {
+        toast.error(msg || 'Error al actualizar la contraseña.');
+      }
     } finally {
       setIsResetLoading(false);
     }
