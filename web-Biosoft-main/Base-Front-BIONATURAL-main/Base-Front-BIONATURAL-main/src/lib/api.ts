@@ -15,6 +15,14 @@ export async function apiFetch<T>(path: string, options: RequestInit & { ignoreA
     ...(options.headers as Record<string, string> || {}),
   };
 
+  // Agregar token de autorización si existe en localStorage
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('bionatural_token');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
   const response = await fetch(url, {
     credentials: 'include',
     headers,
@@ -44,6 +52,7 @@ export async function apiFetch<T>(path: string, options: RequestInit & { ignoreA
 export const authLogin = async (email: string, password: string) => {
   return apiFetch<{
     user: { id: string; name: string; email: string; role: string; permissions: string[] };
+    token: string;
   }>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),

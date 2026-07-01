@@ -327,6 +327,7 @@ export default function App() {
     }
     // Marcar sesión como cerrada intencionalmente para que no se restaure automáticamente
     localStorage.setItem('bionatural_logged_out', '1');
+    localStorage.removeItem('bionatural_token');
     setUser(null);
     setCurrentView('landing');
     setLandingKey(k => k + 1);
@@ -432,6 +433,7 @@ export default function App() {
 
   React.useEffect(() => {
     const handleAuthExpired = () => {
+      localStorage.removeItem('bionatural_token');
       setUser(null); setCurrentView('login'); clearCart();
       setIsProfileOpen(false); setIsUserSidebarOpen(false); setClientView('store');
       toast.error('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
@@ -491,6 +493,7 @@ export default function App() {
         // En caso de error, solo limpiar sesión si es un error de autenticación explícito (401 o 403)
         // Esto evita cerrar la sesión del usuario por errores de red (p.ej. Render durmiendo en primer request)
         if (error && (error.status === 401 || error.status === 403)) {
+          localStorage.removeItem('bionatural_token');
           setUser(null);
           const pathView = getViewFromPath(window.location.pathname);
           if (pathView !== 'landing' && pathView !== 'register') {
