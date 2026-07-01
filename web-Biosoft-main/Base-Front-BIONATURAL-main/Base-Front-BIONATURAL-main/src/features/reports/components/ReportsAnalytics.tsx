@@ -69,7 +69,9 @@ type StockProduct = {
   id: number;
   name: string;
   stock: number;
+  minStock?: number;
   category?: { id: number; name: string };
+  provider?: { id: number; name: string };
 };
 
 export function ReportsAnalytics({ onGoToPurchase }: { onGoToPurchase?: (productId: number, providerId: number) => void } = {}): React.ReactElement {

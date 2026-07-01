@@ -16,6 +16,7 @@ import { DataTable, Column } from '../../../shared/components/DataTable';
 import { getEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../../lib/api';
 import { useDocumentTypesEmployee } from '../../../shared/contexts/SystemConfigContext';
 import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
+import { useSessionState } from '../../../shared/utils/storage';
 import { 
   Plus, 
   Edit, 
@@ -68,9 +69,9 @@ export function EmployeeManagement() {
   const [loading, setLoading] = useState(true);
   const [positionFilter, setPositionFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useSessionState<Employee | null>('emp_selected', null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>('list');
+  const [currentView, setCurrentView] = useSessionState<'list' | 'create' | 'edit'>('emp_view', 'list');
   const [activeRoles, setActiveRoles] = useState<{ value: string; label: string; color: string }[]>(AVAILABLE_POSITIONS);
 
   const mapEmployee = (e: any): Employee => ({

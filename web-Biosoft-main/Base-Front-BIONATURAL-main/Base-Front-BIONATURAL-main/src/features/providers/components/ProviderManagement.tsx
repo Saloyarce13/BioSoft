@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui/tabs';
 import { Calendar } from '../../../components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/ui/popover';
-import { usePersistedState, STORAGE_KEYS, validators, validateFields, generateId, getCurrentDate } from '../../../shared/utils/storage';
+import { usePersistedState, useSessionState, STORAGE_KEYS, validators, validateFields, generateId, getCurrentDate } from '../../../shared/utils/storage';
 import { isItemInactive, getInactiveItemClassName } from '../../../shared/utils/inactiveStateValidation';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -54,7 +54,7 @@ interface Provider {
   id: string;
   name: string;
   businessName: string;
-  documentType: 'CC' | 'NIT' | 'CE';
+  documentType: 'CC' | 'NIT' | 'CE' | 'PAS';
   taxId: string;
   email: string;
   phone: string;
@@ -336,8 +336,8 @@ export function ProviderManagement() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [categoryFilter, setCategoryFilter] = useState('all');
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null);
-  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit' | 'detail' | 'reports'>('list');
+  const [selectedProvider, setSelectedProvider] = useSessionState<Provider | null>('prov_selected', null);
+  const [currentView, setCurrentView] = useSessionState<'list' | 'create' | 'edit' | 'detail' | 'reports'>('prov_view', 'list');
   const [activeTab, setActiveTab] = useState('general');
 
   // Productos del proveedor seleccionado

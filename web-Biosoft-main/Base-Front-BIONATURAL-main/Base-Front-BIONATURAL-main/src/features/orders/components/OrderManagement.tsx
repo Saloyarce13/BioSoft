@@ -14,6 +14,7 @@ import { DataTable, Column } from '../../../shared/components/DataTable';
 import { toast } from 'sonner';
 import { getSales, getClients, getProducts, createSale, updateSaleStatus, apiFetch } from '../../../lib/api';
 import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
+import { useSessionState } from '../../../shared/utils/storage';
 import {
   Row, Col, Card as AntCard, Table as AntTable, Select as AntSelect,
   InputNumber, Button as AntButton, Typography, Divider, Space,
@@ -170,8 +171,8 @@ export function OrderManagement({ user }: { user?: { role: string; permissions: 
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
 
-  const [view, setView] = useState<'list' | 'create' | 'detail'>('list');
-  const [selectedSale, setSelectedSale] = useState<ApiSale | null>(null);
+  const [view, setView] = useSessionState<'list' | 'create' | 'detail'>('ord_view', 'list');
+  const [selectedSale, setSelectedSale] = useSessionState<ApiSale | null>('ord_selected', null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [markReadyId, setMarkReadyId] = useState<number | null>(null);
 

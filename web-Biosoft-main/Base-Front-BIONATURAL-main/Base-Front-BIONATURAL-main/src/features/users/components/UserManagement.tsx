@@ -16,7 +16,7 @@ import { DataTable, Column } from '../../../shared/components/DataTable';
 import { ScrollArea } from '../../../components/ui/scroll-area';
 import { Checkbox } from '../../../components/ui/checkbox';
 import { toast } from 'sonner';
-import { usePersistedState, STORAGE_KEYS } from '../../../shared/utils/storage';
+import { usePersistedState, useSessionState, STORAGE_KEYS } from '../../../shared/utils/storage';
 import { apiFetch, getUsers, getConsolidatedUsers, updateUser, deleteUser, getRoles, toggleUserStatus } from '../../../lib/api';
 import { useDocumentTypesUser } from '../../../shared/contexts/SystemConfigContext';
 import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
@@ -90,13 +90,13 @@ export function UserManagement() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [originFilter, setOriginFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useSessionState<User | null>('usr_selected', null);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>('list');
+  const [currentView, setCurrentView] = useSessionState<'list' | 'create' | 'edit'>('usr_view', 'list');
 
   const loadUsers = useCallback(async () => {
     try {

@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { getPurchases, getProviders, getProducts, createPurchase, updatePurchaseStatus, apiFetch } from '../../../lib/api';
 import { usePurchaseStatuses } from '../../../shared/contexts/SystemConfigContext';
 import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
+import { useSessionState } from '../../../shared/utils/storage';
 import {
   Row, Col, Card as AntCard, Table as AntTable, Select as AntSelect,
   InputNumber, Button as AntButton, Typography, Divider, Space,
@@ -346,8 +347,8 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
   const [statusFilter, setStatusFilter] = useState('all');
 
   // Vista
-  const [view, setView] = useState<'list' | 'create' | 'detail'>('list');
-  const [selectedPurchase, setSelectedPurchase] = useState<ApiPurchase | null>(null);
+  const [view, setView] = useSessionState<'list' | 'create' | 'detail'>('pur_view', 'list');
+  const [selectedPurchase, setSelectedPurchase] = useSessionState<ApiPurchase | null>('pur_selected', null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
   // Estados para confirmación con número de factura

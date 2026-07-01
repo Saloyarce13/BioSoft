@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { getSales, getClients, getProducts, createSale, apiFetch } from '../../../lib/api';
 import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
 import { useSaleStatuses } from '../../../shared/contexts/SystemConfigContext';
+import { useSessionState } from '../../../shared/utils/storage';
 import {
   Row, Col, Card as AntCard, Table as AntTable, Select as AntSelect,
   InputNumber, Button as AntButton, Typography, Divider, Space,
@@ -171,7 +172,7 @@ export function SalesManagement({ user }: { user?: { role: string; permissions: 
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('COMPLETED');
-  const [view, setView] = useState<'list' | 'create'>('list');
+  const [view, setView] = useSessionState<'list' | 'create'>('sal_view', 'list');
 
   // Formulario venta en tienda
   const [clientId, setClientId] = useState('');
@@ -186,7 +187,7 @@ export function SalesManagement({ user }: { user?: { role: string; permissions: 
   const [receivedAmount, setReceivedAmount] = useState<number>(0);
 
   // Detalle
-  const [selectedSale, setSelectedSale] = useState<ApiSale | null>(null);
+  const [selectedSale, setSelectedSale] = useSessionState<ApiSale | null>('sal_selected', null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
 

@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../../components/ui
 import { ImageWithFallback } from '../../../components/figma/ImageWithFallback';
 import { DataTable, Column } from '../../../shared/components/DataTable';
 import { toast } from 'sonner';
-import { usePersistedState, STORAGE_KEYS, generateId, getCurrentDate, formatCOP } from '../../../shared/utils/storage';
+import { usePersistedState, useSessionState, STORAGE_KEYS, generateId, getCurrentDate, formatCOP } from '../../../shared/utils/storage';
 import { isItemInactive, getInactiveItemClassName, getInactiveItemDisabledMessage, getStatusBadgeVariant, filterActiveItems } from '../../../shared/utils/inactiveStateValidation';
 import { getProducts, createProduct, updateProduct, updateProductStock, deleteProduct, getCategories, getProviders, uploadProductImage } from '../../../lib/api';
 import {
@@ -209,9 +209,9 @@ export function ProductManagement({
   const [sortBy, setSortBy] = useState<'name' | 'price' | 'stock' | 'sales' | 'created'>('name');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useSessionState<Product | null>('prod_selected', null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit' | 'detail' | 'reports'>('list');
+  const [currentView, setCurrentView] = useSessionState<'list' | 'create' | 'edit' | 'detail' | 'reports'>('prod_view', 'list');
 
   // Resetear página cuando cambian los filtros
   useEffect(() => {

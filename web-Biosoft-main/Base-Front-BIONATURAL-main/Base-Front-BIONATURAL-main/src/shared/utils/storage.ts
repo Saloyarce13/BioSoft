@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from 'react';
+
 /**
  * Sistema centralizado de almacenamiento local con persistencia
  * para simular backend mientras se visualiza en Figma o prototipo
@@ -105,8 +107,6 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
   return [storedValue, setValue];
 }
 
-import React, { useState, useEffect } from 'react';
-
 export function usePersistedState<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
   // Obtener valor inicial del localStorage o usar el valor por defecto
   const [state, setState] = useState<T>(() => {
@@ -126,6 +126,27 @@ export function usePersistedState<T>(key: string, initialValue: T): [T, (value: 
     } catch (error) {
       console.error(`Error al guardar ${key}:`, error);
     }
+  }, [key, state]);
+
+  return [state, setState];
+}
+
+export function useSessionState<T>(key: string, initialValue: T): [T, (value: T | ((prev: T) => T)) => void] {
+  const [state, setState] = useState<T>(() => {
+    try {
+      const item = typeof window !== 'undefined' ? sessionStorage.getItem(key) : null;
+      return item ? JSON.parse(item) : initialValue;
+    } catch (error) {
+      return initialValue;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem(key, JSON.stringify(state));
+      }
+    } catch (error) {}
   }, [key, state]);
 
   return [state, setState];

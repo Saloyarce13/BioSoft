@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useSessionState } from '../../../shared/utils/storage';
 import { Button } from '../../../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Input } from '../../../components/ui/input';
@@ -258,8 +259,8 @@ export function OrderSalesManagement() {
   const [sortBy, setSortBy] = useState<'orderDate' | 'orderNumber' | 'clientName' | 'total' | 'status'>('orderDate');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [currentView, setCurrentView] = useState<'list' | 'detail' | 'create'>('list');
+  const [selectedOrder, setSelectedOrder] = useSessionState<Order | null>('ordsales_selected', null);
+  const [currentView, setCurrentView] = useSessionState<'list' | 'detail' | 'create'>('ordsales_view', 'list');
 
   // Estados del formulario de creación
   const [formData, setFormData] = useState({

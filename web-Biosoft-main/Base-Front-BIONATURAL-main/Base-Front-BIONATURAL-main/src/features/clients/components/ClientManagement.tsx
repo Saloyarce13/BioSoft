@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { getClients, createClient, updateClient, deleteClient, toggleClientStatus } from '../../../lib/api';
 import { useDocumentTypesClient } from '../../../shared/contexts/SystemConfigContext';
 import { useAutoRefresh } from '../../../shared/hooks/useAutoRefresh';
+import { useSessionState } from '../../../shared/utils/storage';
 import {
   Users, Plus, Edit, Trash2, Eye,
   ChevronLeft, Mail, Phone,
@@ -67,8 +68,8 @@ export function ClientManagement() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [currentView, setCurrentView] = useState<'list' | 'create' | 'edit'>('list');
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [currentView, setCurrentView] = useSessionState<'list' | 'create' | 'edit'>('cli_view', 'list');
+  const [selectedClient, setSelectedClient] = useSessionState<Client | null>('cli_selected', null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [formData, setFormData] = useState<FormData>(emptyForm);
   const [touched, setTouched] = useState<Partial<Record<keyof FormData, boolean>>>({});
