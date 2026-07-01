@@ -56,6 +56,16 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Home, BarChart3, Users, Briefcase, Shield, Building2, Package, ShoppingCart, Truck, FileText, DollarSign, Tag,
 };
 
+const CLIENT_VIEW_PATHS: Record<string, string> = {
+  store: '/',
+  profile: '/perfil',
+  notifications: '/notificaciones',
+  payments: '/metodos-pago',
+  checkout: '/checkout',
+  orders: '/mis-pedidos',
+  favorites: '/favoritos',
+};
+
 const ADMIN_VIEW_PATHS: Record<string, string> = {
   dashboard: '/admin',
   home: '/admin',
@@ -96,6 +106,26 @@ function normalizePathname(pathname: string) {
   return normalized || '/';
 }
 
+function getClientViewFromPath(pathname: string): ClientView {
+  const path = normalizePathname(pathname);
+  switch (path) {
+    case '/perfil':
+      return 'profile';
+    case '/notificaciones':
+      return 'notifications';
+    case '/metodos-pago':
+      return 'payments';
+    case '/checkout':
+      return 'checkout';
+    case '/mis-pedidos':
+      return 'orders';
+    case '/favoritos':
+      return 'favorites';
+    default:
+      return 'store';
+  }
+}
+
 function getViewFromPath(pathname: string) {
   const path = normalizePathname(pathname);
   switch (path) {
@@ -105,6 +135,13 @@ function getViewFromPath(pathname: string) {
       return 'login';
     case '/register':
       return 'register';
+    case '/perfil':
+    case '/notificaciones':
+    case '/metodos-pago':
+    case '/checkout':
+    case '/mis-pedidos':
+    case '/favoritos':
+      return 'store';
     case '/admin':
     case '/admin/dashboard':
     case '/admin/home':
@@ -180,17 +217,6 @@ interface UnifiedProduct {
 type ClientView = 'store' | 'profile' | 'notifications' | 'payments' | 'checkout' | 'orders' | 'favorites';
 
 export default function App() {
-  const [currentView, setCurrentView] = useState(() => {
-    if (typeof window === 'undefined') return 'landing';
-    return getViewFromPath(window.location.pathname) || 'landing';
-  });
-  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    if (localStorage.getItem('bionatural_logged_out') === '1') return false;
-    if (localStorage.getItem('bionatural_user')) return false;
-    return true;
-  });
-  const [landingKey, setLandingKey] = useState(0);
   const [user, setUser] = useState<{ name: string; email: string; role: string; permissions: string[] } | null>(() => {
     if (typeof window === 'undefined') return null;
     const stored = localStorage.getItem('bionatural_user');
@@ -200,11 +226,41 @@ export default function App() {
       return null;
     }
   });
+  const [currentView, setCurrentView] = useState(() => {
+    if (typeof window === 'undefined') return 'landing';
+    const pathView = getViewFromPath(window.location.pathname) || 'landing';
+
+    // Si hay un usuario logueado en localStorage, evitamos mostrar la landing o login
+    const stored = localStorage.getItem('bionatural_user');
+    if (stored) {
+      try {
+        const u = JSON.parse(stored);
+        if (u) {
+          const role = u.role ? String(u.role).toLowerCase() : '';
+          const isClient = role === 'cliente' || role === 'user';
+          if (pathView === 'login' || pathView === 'register' || pathView === 'landing') {
+            return isClient ? 'store' : 'dashboard';
+          }
+        }
+      } catch {}
+    }
+    return pathView;
+  });
+  const [isCheckingAuth, setIsCheckingAuth] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    if (localStorage.getItem('bionatural_logged_out') === '1') return false;
+    if (localStorage.getItem('bionatural_user')) return false;
+    return true;
+  });
+  const [landingKey, setLandingKey] = useState(0);
   const { cartItems, addToCart, updateCartQuantity, removeFromCart, clearCart, cartItemsCount } = useCart();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isUserSidebarOpen, setIsUserSidebarOpen] = useState(false);
-  const [clientView, setClientView] = useState<ClientView>('store');
+  const [clientView, setClientView] = useState<ClientView>(() => {
+    if (typeof window === 'undefined') return 'store';
+    return getClientViewFromPath(window.location.pathname);
+  });
   const { favorites, isFavorite, toggleFavorite } = useFavorites(user?.email || 'guest');
 
   // Grupos del sidebar — múltiples pueden estar abiertos a la vez
@@ -330,8 +386,21 @@ export default function App() {
 
   React.useEffect(() => {
     const handlePopState = () => {
-      const nextView = getViewFromPath(window.location.pathname);
+      const nextPath = window.location.pathname;
+      const nextView = getViewFromPath(nextPath);
       if (nextView) setCurrentView(nextView);
+      // Actualizar vista del cliente si aplica
+      const stored = localStorage.getItem('bionatural_user');
+      let isClient = false;
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          if (u && (u.role === 'Cliente' || u.role === 'user')) isClient = true;
+        } catch {}
+      }
+      if (isClient) {
+        setClientView(getClientViewFromPath(nextPath));
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -346,6 +415,27 @@ export default function App() {
       window.history.pushState({}, '', nextPath);
     }
   }, [currentView]);
+
+  // Sincronizar cambios de clientView con la URL del navegador vía history API
+  React.useEffect(() => {
+    const stored = localStorage.getItem('bionatural_user');
+    let isClient = false;
+    if (stored) {
+      try {
+        const u = JSON.parse(stored);
+        if (u && (u.role === 'Cliente' || u.role === 'user')) isClient = true;
+      } catch {}
+    }
+    if (isClient && clientView) {
+      const nextPath = CLIENT_VIEW_PATHS[clientView];
+      if (nextPath) {
+        const currentPath = normalizePathname(window.location.pathname);
+        if (currentPath !== nextPath) {
+          window.history.pushState({}, '', nextPath);
+        }
+      }
+    }
+  }, [clientView, user]);
 
   React.useEffect(() => {
     const handleAuthExpired = () => {
@@ -396,6 +486,8 @@ export default function App() {
           setUser({ name: d.name, email: d.email, role: normalizedRole, permissions: rolePerms });
           if (normalizedRole === 'Cliente') {
             setCurrentView('store');
+            // Mantener la subvista del cliente desde la URL actual
+            setClientView(getClientViewFromPath(window.location.pathname));
           } else {
             const pathView = getViewFromPath(window.location.pathname);
             setCurrentView(isAdminView(pathView) ? pathView! : 'dashboard');
@@ -406,14 +498,16 @@ export default function App() {
         // En caso de error (p.ej. token expirado en servidor), limpiar datos locales y volver a login si corresponde
         setUser(null);
         const pathView = getViewFromPath(window.location.pathname);
-        if (isAdminView(pathView)) {
+        if (pathView !== 'landing' && pathView !== 'register') {
           setCurrentView('login');
+        } else {
+          setCurrentView(pathView);
         }
       })
       .finally(() => {
         setIsCheckingAuth(false);
       });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Escuchar evento global de navegación rápida a compras (desde ProductManagement)

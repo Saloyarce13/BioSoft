@@ -1,4 +1,6 @@
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:3000/api';
+const API_BASE_URL = 
+  (import.meta.env.VITE_API_BASE_URL as string) || 
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' ? '/api' : 'http://localhost:3000/api');
 
 export type ApiResponse<T> = {
   success: boolean;
