@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { toast } from 'sonner';
 
 export interface CartItem {
@@ -38,8 +38,8 @@ export interface UnifiedProduct {
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (product: UnifiedProduct, quantity?: number) => void;
-  updateCartQuantity: (id: number, quantity: number) => void;
-  removeFromCart: (id: number) => void;
+  updateCartQuantity: (id: number | string, quantity: number) => void;
+  removeFromCart: (id: number | string) => void;
   clearCart: () => void;
   cartItemsCount: number;
 }
@@ -47,7 +47,21 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  // Inicializar estado del carrito leyendo desde localStorage
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const stored = localStorage.getItem('bionatural_cart');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Guardar en localStorage cada vez que cambie el carrito
+  useEffect(() => {
+    localStorage.setItem('bionatural_cart', JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const addToCart = (product: UnifiedProduct, quantity = 1) => {
     if (!product.stock || product.stock <= 0) {
@@ -55,7 +69,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
     setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => String(item.id) === String(product.id));
       if (existing) {
         const maxQty = product.stock ?? 999;
         if (existing.quantity >= maxQty) {
@@ -63,7 +77,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           return prev;
         }
         const newQty = Math.min(existing.quantity + quantity, maxQty);
-        return prev.map(item => item.id === product.id ? { ...item, quantity: newQty } : item);
+        return prev.map(item => String(item.id) === String(product.id) ? { ...item, quantity: newQty } : item);
       }
       return [...prev, {
         id: product.id as number,
@@ -78,9 +92,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     toast.success(quantity === 1 ? `${product.name} agregado al carrito` : `${product.name} (${quantity}x) agregado al carrito`);
   };
 
-  const updateCartQuantity = (id: number, quantity: number) => {
+  const updateCartQuantity = (id: number | string, quantity: number) => {
     setCartItems(prev => prev.map(item => {
-      if (item.id !== id) return item;
+      if (String(item.id) !== String(id)) return item;
       const maxQty = item.stock ?? 999;
       const safeQty = Math.min(Math.max(1, quantity), maxQty);
       if (quantity > maxQty) toast.error(`Solo hay ${maxQty} unidades disponibles`);
@@ -88,9 +102,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }));
   };
 
-  const removeFromCart = (id: number) => {
-    const item = cartItems.find(item => item.id === id);
-    setCartItems(prev => prev.filter(item => item.id !== id));
+  const removeFromCart = (id: number | string) => {
+    const item = cartItems.find(item => String(item.id) === String(id));
+    setCartItems(prev => prev.filter(item => String(item.id) !== String(id)));
     if (item) toast.success(`${item.name} eliminado del carrito`);
   };
 
