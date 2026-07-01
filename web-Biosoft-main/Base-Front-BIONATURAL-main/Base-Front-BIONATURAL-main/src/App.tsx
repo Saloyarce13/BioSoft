@@ -413,7 +413,7 @@ export default function App() {
       .finally(() => {
         setIsCheckingAuth(false);
       });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Escuchar evento global de navegación rápida a compras (desde ProductManagement)
@@ -424,7 +424,7 @@ export default function App() {
     };
     window.addEventListener('app:goto-purchase', handleGotoPurchase);
     return () => window.removeEventListener('app:goto-purchase', handleGotoPurchase);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Refrescar datos automáticamente cuando la pestaña vuelve al foco
@@ -475,12 +475,12 @@ export default function App() {
         onRemoveItem={removeFromCart} onClearCart={clearCart} onCheckout={handleCheckout} />
     );
     switch (clientView) {
-      case 'profile':      return <><ClientProfile user={user} onBack={() => setClientView('store')} onLogout={handleLogout} onNameChange={name => setUser(prev => prev ? { ...prev, name } : prev)} />{cartSidebar}</>;
-      case 'notifications':return <><ClientNotifications user={user} onBack={() => setClientView('store')} />{cartSidebar}</>;
-      case 'payments':     return <><ClientPaymentMethods user={user} onBack={() => setClientView('store')} />{cartSidebar}</>;
-      case 'checkout':     return <><CheckoutFlow cartItems={cartItems} onClose={() => setClientView('store')} onOrderComplete={handleOrderComplete} user={user} onLogin={handleLogin} />{cartSidebar}</>;
-      case 'orders':       return <><ClientOrders user={user} onBack={() => setClientView('store')} />{cartSidebar}</>;
-      case 'favorites':    return <><ClientFavorites user={user} onBack={() => setClientView('store')} />{cartSidebar}</>;
+      case 'profile': return <><ClientProfile user={user} onBack={() => setClientView('store')} onLogout={handleLogout} onNameChange={name => setUser(prev => prev ? { ...prev, name } : prev)} />{cartSidebar}</>;
+      case 'notifications': return <><ClientNotifications user={user} onBack={() => setClientView('store')} />{cartSidebar}</>;
+      case 'payments': return <><ClientPaymentMethods user={user} onBack={() => setClientView('store')} />{cartSidebar}</>;
+      case 'checkout': return <><CheckoutFlow cartItems={cartItems} onClose={() => setClientView('store')} onOrderComplete={handleOrderComplete} user={user} onLogin={handleLogin} />{cartSidebar}</>;
+      case 'orders': return <><ClientOrders user={user} onBack={() => setClientView('store')} />{cartSidebar}</>;
+      case 'favorites': return <><ClientFavorites user={user} onBack={() => setClientView('store')} />{cartSidebar}</>;
       case 'store':
       default:
         return (
@@ -603,24 +603,24 @@ export default function App() {
 
   const renderContent = () => {
     switch (currentView) {
-      case 'landing':   return <LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} />;
+      case 'landing': return <LandingPage key={landingKey} onLoginOpen={() => setCurrentView('login')} />;
       case 'home':
       case 'dashboard':
-      case 'reports':   return <DashboardReportsView onGoToPurchase={goToPurchaseWithProduct} />;
-      case 'users':     return <UserManagement />;
+      case 'reports': return <DashboardReportsView onGoToPurchase={goToPurchaseWithProduct} />;
+      case 'users': return <UserManagement />;
       case 'employees': return <EmployeeManagement />;
-      case 'roles':     return <RoleManagement />;
+      case 'roles': return <RoleManagement />;
       case 'providers': return <ProviderManagement />;
-      case 'products':  return <ProductManagement />;
-      case 'categories':return <CategoryManagement />;
+      case 'products': return <ProductManagement />;
+      case 'categories': return <CategoryManagement />;
       case 'purchases': return <PurchaseManagement
-          initialProductId={purchaseQuickStart?.productId}
-          initialProviderId={purchaseQuickStart?.providerId}
-        />;
-      case 'clients':   return <ClientManagement />;
-      case 'orders':    return <OrderManagement user={user} />;
-      case 'sales':     return <SalesManagement user={user} />;
-      default:          return <HomeView />;
+        initialProductId={purchaseQuickStart?.productId}
+        initialProviderId={purchaseQuickStart?.providerId}
+      />;
+      case 'clients': return <ClientManagement />;
+      case 'orders': return <OrderManagement user={user} />;
+      case 'sales': return <SalesManagement user={user} />;
+      default: return <HomeView />;
     }
   };
 
