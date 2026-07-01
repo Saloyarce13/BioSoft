@@ -418,14 +418,7 @@ export default function App() {
 
   // Sincronizar cambios de clientView con la URL del navegador vía history API
   React.useEffect(() => {
-    const stored = localStorage.getItem('bionatural_user');
-    let isClient = false;
-    if (stored) {
-      try {
-        const u = JSON.parse(stored);
-        if (u && (u.role === 'Cliente' || u.role === 'user')) isClient = true;
-      } catch {}
-    }
+    const isClient = user && (user.role === 'Cliente' || user.role === 'user');
     if (isClient && clientView) {
       const nextPath = CLIENT_VIEW_PATHS[clientView];
       if (nextPath) {
@@ -494,14 +487,19 @@ export default function App() {
           }
         }
       })
-      .catch(() => {
-        // En caso de error (p.ej. token expirado en servidor), limpiar datos locales y volver a login si corresponde
-        setUser(null);
-        const pathView = getViewFromPath(window.location.pathname);
-        if (pathView !== 'landing' && pathView !== 'register') {
-          setCurrentView('login');
+      .catch((error: any) => {
+        // En caso de error, solo limpiar sesión si es un error de autenticación explícito (401 o 403)
+        // Esto evita cerrar la sesión del usuario por errores de red (p.ej. Render durmiendo en primer request)
+        if (error && (error.status === 401 || error.status === 403)) {
+          setUser(null);
+          const pathView = getViewFromPath(window.location.pathname);
+          if (pathView !== 'landing' && pathView !== 'register') {
+            setCurrentView('login');
+          } else {
+            setCurrentView(pathView);
+          }
         } else {
-          setCurrentView(pathView);
+          console.warn('Fallo temporal al validar sesión (error de red o servidor). Preservando sesión local.', error);
         }
       })
       .finally(() => {
