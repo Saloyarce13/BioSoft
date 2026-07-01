@@ -65,6 +65,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
   const [emailError, setEmailError] = useState('');
   const [loginError, setLoginError] = useState('');
   const [recoveryCooldown, setRecoveryCooldown] = useState(0);
+  const [resetPwError, setResetPwError] = useState('');
 
   const [registerForm, setRegisterForm] = useState({
     firstName: '', lastName: '', email: '', phone: '',
@@ -235,6 +236,7 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
     } catch (error: any) {
       const msg = error?.message || '';
       if (msg.includes('igual a tu contraseña actual') || msg.includes('contraseña anterior')) {
+        setResetPwError('⚠️ La nueva contraseña no puede ser igual a la actual. Elige una diferente.');
         toast.error('¡Seguridad! No puedes usar tu contraseña anterior. Por favor elige una nueva contraseña.');
       } else {
         toast.error(msg || 'Error al actualizar la contraseña.');
@@ -344,34 +346,55 @@ export function AuthLogin({ onLogin, onBack, onRegister }: AuthLoginProps) {
 
               {/* PASO 2: Nueva contraseña (solo si el código fue verificado) */}
               {codeVerified && (
-                <form onSubmit={handleResetConfirm} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="new-password">Nueva contraseña</Label>
-                    <PasswordInput id="new-password" value={newPassword} onChange={setNewPassword}
-                      placeholder="Mínimo 8 caracteres" />
-                    <p className="text-xs text-muted-foreground">
-                      Debe tener mayúscula, número y carácter especial
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm-new-password">Confirmar contraseña</Label>
-                    <PasswordInput id="confirm-new-password" value={confirmNewPassword}
-                      onChange={setConfirmNewPassword} placeholder="Repite la contraseña" />
-                    {confirmNewPassword && newPassword === confirmNewPassword && (
-                      <p className="text-xs text-green-600 flex items-center gap-1">
-                        <CheckCircle className="h-3 w-3" /> Las contraseñas coinciden
+                <>
+                  {/* Alerta visible si la nueva contraseña coincide con la actual */}
+                  {resetPwError && (
+                    <div style={{
+                      backgroundColor: '#FEF2F2',
+                      border: '1px solid #FCA5A5',
+                      borderRadius: 10,
+                      padding: '10px 14px',
+                      marginBottom: '12px',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: 10
+                    }}>
+                      <span style={{ fontSize: 18, lineHeight: 1 }}>&#x26A0;&#xFE0F;</span>
+                      <div>
+                        <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#991B1B' }}>Contraseña no permitida</p>
+                        <p style={{ margin: '2px 0 0', fontSize: 12, color: '#B91C1C', lineHeight: 1.4 }}>{resetPwError}</p>
+                      </div>
+                    </div>
+                  )}
+                  <form onSubmit={handleResetConfirm} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password">Nueva contraseña</Label>
+                      <PasswordInput id="new-password" value={newPassword} onChange={setNewPassword}
+                        placeholder="Mínimo 8 caracteres" />
+                      <p className="text-xs text-muted-foreground">
+                        Debe tener mayúscula, número y carácter especial
                       </p>
-                    )}
-                    {confirmNewPassword && newPassword !== confirmNewPassword && (
-                      <p className="text-xs text-destructive flex items-center gap-1">
-                        <AlertTriangle className="h-3 w-3" /> Las contraseñas no coinciden
-                      </p>
-                    )}
-                  </div>
-                  <Button type="submit" className="w-full" disabled={isResetLoading}>
-                    {isResetLoading ? 'Actualizando...' : 'Restablecer contraseña'}
-                  </Button>
-                </form>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-new-password">Confirmar contraseña</Label>
+                      <PasswordInput id="confirm-new-password" value={confirmNewPassword}
+                        onChange={setConfirmNewPassword} placeholder="Repite la contraseña" />
+                      {confirmNewPassword && newPassword === confirmNewPassword && (
+                        <p className="text-xs text-green-600 flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" /> Las contraseñas coinciden
+                        </p>
+                      )}
+                      {confirmNewPassword && newPassword !== confirmNewPassword && (
+                        <p className="text-xs text-destructive flex items-center gap-1">
+                          <AlertTriangle className="h-3 w-3" /> Las contraseñas no coinciden
+                        </p>
+                      )}
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isResetLoading}>
+                      {isResetLoading ? 'Actualizando...' : 'Restablecer contraseña'}
+                    </Button>
+                  </form>
+                </>
               )}
             </CardContent>
           </Card>

@@ -54,6 +54,7 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
   const [pwForm, setPwForm] = useState({ current: '', new: '', confirm: '' });
   const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
   const [saving, setSaving] = useState(false);
+  const [pwError, setPwError] = useState('');
 
   useEffect(() => {
     const load = async () => {
@@ -107,15 +108,18 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
     if (pwForm.new.length < 8) { toast.error('Mínimo 8 caracteres'); return; }
     if (pwForm.new !== pwForm.confirm) { toast.error('Las contraseñas no coinciden'); return; }
     setSaving(true);
+    setPwError('');
     try {
       // Endpoint correcto para cambio de contraseña
       await apiFetch('/auth/change-password', { method: 'POST', body: JSON.stringify({ currentPassword: pwForm.current, newPassword: pwForm.new }) });
       setPwForm({ current: '', new: '', confirm: '' });
+      setPwError('');
       setIsChangingPassword(false);
       toast.success('Contraseña actualizada');
     } catch (err: any) {
       const msg = err?.message || '';
       if (msg.includes('igual a tu contraseña actual') || msg.includes('contraseña anterior')) {
+        setPwError('⚠️ No puedes usar tu contraseña actual como nueva contraseña. Por favor elige una contraseña diferente.');
         toast.error('¡Seguridad! No puedes usar tu contraseña anterior. Por favor elige una nueva contraseña.');
       } else {
         toast.error(msg || 'Error al cambiar contraseña');
@@ -309,18 +313,45 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
       </Dialog>
 
       {/* Dialog cambiar contraseña */}
-      <Dialog open={isChangingPassword} onOpenChange={setIsChangingPassword}>
+      <Dialog open={isChangingPassword} onOpenChange={(open) => { setIsChangingPassword(open); if (!open) { setPwError(''); setPwForm({ current: '', new: '', confirm: '' }); } }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Cambiar contraseña</DialogTitle>
             <DialogDescription>Mínimo 8 caracteres</DialogDescription>
           </DialogHeader>
+
+          {/* Alerta visible cuando intenta usar la misma contraseña */}
+          {pwError && (
+            <div style={{
+              backgroundColor: '#FEF2F2',
+              border: '1px solid #FCA5A5',
+              borderRadius: 10,
+              padding: '10px 14px',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 10
+            }}>
+              <span style={{ fontSize: 18, lineHeight: 1 }}>&#x26A0;&#xFE0F;</span>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 13, color: '#991B1B' }}>Contraseña no permitida</p>
+                <p style={{ margin: '2px 0 0', fontSize: 12, color: '#B91C1C', lineHeight: 1.4 }}>
+                  La nueva contraseña no puede ser igual a la que ya tienes registrada. Por favor elige una diferente.
+                </p>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3">
             {(['current', 'new', 'confirm'] as const).map((field) => (
               <div key={field} className="space-y-1">
                 <Label className="text-xs">{field === 'current' ? 'Contraseña actual' : field === 'new' ? 'Nueva contraseña' : 'Confirmar contraseña'}</Label>
                 <div className="relative">
-                  <Input type={showPw[field] ? 'text' : 'password'} value={pwForm[field]} onChange={e => setPwForm(p => ({ ...p, [field]: e.target.value }))} className="h-9 text-sm pr-9" placeholder="••••••••" />
+                  <Input
+                    type={showPw[field] ? 'text' : 'password'}
+                    value={pwForm[field]}
+                    onChange={e => { setPwForm(p => ({ ...p, [field]: e.target.value })); if (pwError) setPwError(''); }}
+                    className="h-9 text-sm pr-9"
+                    placeholder="••••••••" />
                   <button type="button" onClick={() => setShowPw(p => ({ ...p, [field]: !p[field] }))} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                     {showPw[field] ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                   </button>
@@ -329,7 +360,7 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
             ))}
           </div>
           <div className="flex gap-2 justify-end pt-2">
-            <button onClick={() => setIsChangingPassword(false)} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #E5E5E2', backgroundColor: 'white', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Cancelar</button>
+            <button onClick={() => { setIsChangingPassword(false); setPwError(''); }} style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #E5E5E2', backgroundColor: 'white', fontSize: 13, cursor: 'pointer', color: '#374151' }}>Cancelar</button>
             <button onClick={handleChangePassword} disabled={saving} style={{ padding: '8px 20px', borderRadius: 8, border: 'none', backgroundColor: '#3A7D44', color: 'white', fontSize: 13, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Lock style={{ width: 13, height: 13 }} /> {saving ? 'Guardando...' : 'Cambiar'}
             </button>
