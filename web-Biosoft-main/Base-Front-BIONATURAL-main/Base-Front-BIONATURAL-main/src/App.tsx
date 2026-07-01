@@ -479,6 +479,9 @@ export default function App() {
       return;
     }
 
+    // Capturar la URL ANTES de cualquier cambio — es la fuente de verdad
+    const originalPath = window.location.pathname;
+
     apiFetch<any>('/auth/me', { ignoreAuthError: true })
       .then(res => {
         if (res.success) {
@@ -491,28 +494,26 @@ export default function App() {
           setUser({ name: d.name, email: d.email, role: normalizedRole, permissions: rolePerms });
           if (normalizedRole === 'Cliente') {
             setCurrentView('store');
-            // Mantener la subvista del cliente desde la URL actual
-            setClientView(getClientViewFromPath(window.location.pathname));
+            setClientView(getClientViewFromPath(originalPath));
           } else {
-            const pathView = getViewFromPath(window.location.pathname);
+            // Usar la URL original capturada al inicio — nunca la URL actual que puede haber cambiado
+            const pathView = getViewFromPath(originalPath);
             setCurrentView(isAdminView(pathView) ? pathView! : 'dashboard');
           }
         }
       })
       .catch((error: any) => {
-        // En caso de error, solo limpiar sesión si es un error de autenticación explícito (401 o 403)
-        // Esto evita cerrar la sesión del usuario por errores de red (p.ej. Render durmiendo en primer request)
         if (error && (error.status === 401 || error.status === 403)) {
           localStorage.removeItem('bionatural_token');
           setUser(null);
-          const pathView = getViewFromPath(window.location.pathname);
+          const pathView = getViewFromPath(originalPath);
           if (pathView !== 'landing' && pathView !== 'register') {
             setCurrentView('login');
           } else {
             setCurrentView(pathView);
           }
         } else {
-          console.warn('Fallo temporal al validar sesión (error de red o servidor). Preservando sesión local.', error);
+          console.warn('Fallo temporal al validar sesión. Preservando sesión local.', error);
         }
       })
       .finally(() => {
