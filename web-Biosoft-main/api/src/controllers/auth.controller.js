@@ -642,40 +642,51 @@ const passwordResetRequest = async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'El email es requerido' });
 
-    // Siempre responder OK para no revelar si el email existe
     const user = await prisma.user.findUnique({ where: { email } });
-    if (user && user.isActive) {
-      const code = generateNumericCode(6);
-      const codeHash = hashCodeSha256(code);
-      const ttl = Number(process.env.PASSWORD_RESET_TTL_MINUTES || 15);
-      const expiresAt = new Date(Date.now() + ttl * 60 * 1000);
-
-      // Invalidar códigos anteriores
-      await prisma.passwordResetCode.updateMany({
-        where: { email, used: false },
-        data: { used: true },
-      });
-
-      await prisma.passwordResetCode.create({
-        data: { email, codeHash, expiresAt },
-      });
-
-      // Enviar email sin bloquear — si falla se loguea pero no devuelve 500
-      sendEmailWithCode({
-        to: email,
-        code,
-        subject: 'Código de recuperación — Bionatural',
-        text: `Usa este código para restablecer tu contraseña. Expira en ${ttl} minutos.`,
-      }).then(() => {
-        logger.info(`Password reset code sent to: ${email}`);
-      }).catch(err => {
-        logger.error(`Failed to send password reset email to ${email}: ${err.message}`);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'El correo ingresado no está registrado en el sistema.'
       });
     }
 
+    if (!user.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: 'La cuenta asociada a este correo electrónico está inactiva.'
+      });
+    }
+
+    const code = generateNumericCode(6);
+    const codeHash = hashCodeSha256(code);
+    const ttl = Number(process.env.PASSWORD_RESET_TTL_MINUTES || 15);
+    const expiresAt = new Date(Date.now() + ttl * 60 * 1000);
+
+    // Invalidar códigos anteriores
+    await prisma.passwordResetCode.updateMany({
+      where: { email, used: false },
+      data: { used: true },
+    });
+
+    await prisma.passwordResetCode.create({
+      data: { email, codeHash, expiresAt },
+    });
+
+    // Enviar email sin bloquear — si falla se loguea pero no devuelve 500
+    sendEmailWithCode({
+      to: email,
+      code,
+      subject: 'Código de recuperación — Bionatural',
+      text: `Usa este código para restablecer tu contraseña. Expira en ${ttl} minutos.`,
+    }).then(() => {
+      logger.info(`Password reset code sent to: ${email}`);
+    }).catch(err => {
+      logger.error(`Failed to send password reset email to ${email}: ${err.message}`);
+    });
+
     return res.status(200).json({
       success: true,
-      message: 'Si el correo existe, recibirás un código de recuperación.',
+      message: 'Hemos enviado un código de recuperación a tu correo electrónico.',
     });
   } catch (error) {
     logger.error('Password reset request error:', error);
