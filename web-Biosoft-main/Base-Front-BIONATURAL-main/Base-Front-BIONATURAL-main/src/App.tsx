@@ -498,8 +498,15 @@ export default function App() {
           } else {
             // Usar la URL original capturada al inicio — nunca la URL actual que puede haber cambiado
             const pathView = getViewFromPath(originalPath);
-            setCurrentView(isAdminView(pathView) ? pathView! : 'dashboard');
+            // Si la URL resuelve una sección concreta del admin, usarla
+            // Si no (e.g., servidor redirigió todo a '/'), recuperar la vista guardada en session
+            const savedView = sessionStorage.getItem('bionatural_last_view');
+            const resolvedView = (isAdminView(pathView) ? pathView : null)
+              ?? (savedView && isAdminView(savedView) ? savedView : null)
+              ?? 'dashboard';
+            setCurrentView(resolvedView);
           }
+
         }
       })
       .catch((error: any) => {
