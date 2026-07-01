@@ -483,11 +483,17 @@ const changePassword = async (req, res) => {
     // Encriptar nueva contraseña
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
 
-    // Actualizar contraseña
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { password: hashedNewPassword }
-    });
+    // Actualizar contraseña en User y en Employee (si aplica)
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedNewPassword }
+      }),
+      prisma.employee.updateMany({
+        where: { email: user.email },
+        data: { password: hashedNewPassword }
+      })
+    ]);
 
     logger.info(`Password changed for user: ${user.email}`);
 
@@ -757,6 +763,7 @@ const passwordResetConfirm = async (req, res) => {
 
     await prisma.$transaction([
       prisma.user.update({ where: { email }, data: { password: hashedPassword } }),
+      prisma.employee.updateMany({ where: { email }, data: { password: hashedPassword } }),
       prisma.passwordResetCode.update({ where: { id: record.id }, data: { used: true } }),
     ]);
 

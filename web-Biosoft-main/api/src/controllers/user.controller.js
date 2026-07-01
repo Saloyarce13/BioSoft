@@ -427,7 +427,7 @@ const changePassword = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { id: Number(req.params.id) },
-      select: { id: true, password: true },
+      select: { id: true, password: true, email: true },
     });
     if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
 
@@ -443,7 +443,10 @@ const changePassword = async (req, res) => {
     }
 
     const hashedNew = await bcrypt.hash(newPassword, 10);
-    await prisma.user.update({ where: { id: Number(req.params.id) }, data: { password: hashedNew } });
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: Number(req.params.id) }, data: { password: hashedNew } }),
+      prisma.employee.updateMany({ where: { email: user.email }, data: { password: hashedNew } })
+    ]);
 
     return res.status(200).json({ success: true, message: 'Contraseña actualizada correctamente' });
   } catch (error) {
@@ -463,10 +466,16 @@ const resetPassword = async (req, res) => {
     if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
 
     const passwordHash = await bcrypt.hash(newPassword, 10);
-    await prisma.user.update({
-      where: { id: Number(req.params.id) },
-      data: { password: passwordHash, isActive: true, emailVerified: true },
-    });
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: Number(req.params.id) },
+        data: { password: passwordHash, isActive: true, emailVerified: true },
+      }),
+      prisma.employee.updateMany({
+        where: { email: user.email },
+        data: { password: passwordHash },
+      })
+    ]);
 
     return res.status(200).json({ success: true, message: 'Contraseña reseteada correctamente' });
   } catch (error) {
