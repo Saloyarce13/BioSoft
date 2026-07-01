@@ -346,6 +346,31 @@ const changeStatus = async (req, res) => {
       if (!invoiceNumber || typeof invoiceNumber !== 'string' || invoiceNumber.trim() === '') {
         return res.status(400).json({ success: false, message: 'El número de factura es obligatorio para completar la compra.' });
       }
+
+      const cleanedInvoice = invoiceNumber.trim();
+
+      // 1 y 2. Solo letras y números, no vacía
+      const alphaNumericRegex = /^[a-zA-Z0-9]+$/;
+      if (!alphaNumericRegex.test(cleanedInvoice)) {
+        return res.status(400).json({
+          success: false,
+          message: 'El número de factura solo debe contener letras y números (sin espacios ni caracteres especiales).'
+        });
+      }
+
+      // 3. Unicidad (no duplicados)
+      const duplicate = await prisma.purchase.findFirst({
+        where: {
+          invoiceNumber: { equals: cleanedInvoice, mode: 'insensitive' },
+          id: { not: purchaseId }
+        }
+      });
+      if (duplicate) {
+        return res.status(400).json({
+          success: false,
+          message: 'El número de factura ya existe en el sistema. Por favor ingresa uno diferente.'
+        });
+      }
     }
 
     const items = await prisma.purchaseItem.findMany({

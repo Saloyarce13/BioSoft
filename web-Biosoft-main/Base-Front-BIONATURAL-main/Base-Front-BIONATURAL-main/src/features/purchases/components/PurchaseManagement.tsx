@@ -619,10 +619,23 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
   };
 
   const handleConfirmCompleted = async () => {
-    if (!confirmingPurchaseId || !invoiceNumberInput.trim()) return;
+    if (!confirmingPurchaseId) return;
+    const trimmed = invoiceNumberInput.trim();
+
+    // Validación 1: no vacío
+    if (!trimmed) {
+      toast.error('El número de factura es obligatorio.');
+      return;
+    }
+
+    // Validación 2: solo letras y números
+    if (!/^[a-zA-Z0-9]+$/.test(trimmed)) {
+      toast.error('El número de factura solo puede contener letras y números, sin espacios ni caracteres especiales.');
+      return;
+    }
 
     try {
-      const res = await updatePurchaseStatus(String(confirmingPurchaseId), 'COMPLETED', invoiceNumberInput.trim());
+      const res = await updatePurchaseStatus(String(confirmingPurchaseId), 'COMPLETED', trimmed);
       if (res.success) {
         toast.success(res.message);
         setInvoiceModalOpen(false);
@@ -1303,20 +1316,29 @@ export function PurchaseManagement({ initialProductId, initialProviderId }: {
             <Input
               id="invoice-number"
               value={invoiceNumberInput}
-              onChange={(e) => setInvoiceNumberInput(e.target.value)}
-              placeholder="Ej: FAC-12345"
-              className="w-full"
+              onChange={(e) => {
+                // Solo permitir letras y números en tiempo real
+                const val = e.target.value.replace(/[^a-zA-Z0-9]/g, '');
+                setInvoiceNumberInput(val);
+              }}
+              placeholder="Ej: FAC12345"
+              className={`w-full font-mono tracking-wider ${invoiceNumberInput.trim() && !/^[a-zA-Z0-9]+$/.test(invoiceNumberInput.trim()) ? 'border-destructive focus-visible:ring-destructive' : ''}`}
               autoFocus
+              maxLength={50}
             />
+            <p className="text-xs text-muted-foreground">
+              Solo letras y números. No se permiten espacios, guiones ni caracteres especiales.
+              Cada factura debe ser única.
+            </p>
           </div>
 
           <DialogFooter className="flex gap-2 sm:justify-end mt-2">
-            <Button variant="outline" onClick={() => setInvoiceModalOpen(false)}>
+            <Button variant="outline" onClick={() => { setInvoiceModalOpen(false); setInvoiceNumberInput(''); }}>
               Cancelar
             </Button>
             <Button
               onClick={handleConfirmCompleted}
-              disabled={!invoiceNumberInput.trim()}
+              disabled={!invoiceNumberInput.trim() || !/^[a-zA-Z0-9]+$/.test(invoiceNumberInput.trim())}
               className="bg-green-600 hover:bg-green-700 text-white"
             >
               Completar Compra
