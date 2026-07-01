@@ -308,8 +308,14 @@ export default function App() {
     const normalized = { ...userData, role: normalizedRole, permissions: userData.permissions || [] };
     setUser(normalized);
     if (normalizedRole !== 'Cliente') {
+      // Intentar restaurar la vista donde estaba antes del F5/login
+      const savedView = sessionStorage.getItem('bionatural_last_view');
+      sessionStorage.removeItem('bionatural_last_view');
       const pathView = typeof window !== 'undefined' ? getViewFromPath(window.location.pathname) : null;
-      setCurrentView(isAdminView(pathView) ? pathView! : 'dashboard');
+      const targetView = (savedView && isAdminView(savedView)) ? savedView
+        : isAdminView(pathView) ? pathView!
+        : 'dashboard';
+      setCurrentView(targetView);
     } else if (currentView !== 'checkout') {
       setCurrentView('store');
     }
@@ -414,6 +420,10 @@ export default function App() {
     const currentPath = normalizePathname(window.location.pathname);
     if (currentPath !== nextPath) {
       window.history.pushState({}, '', nextPath);
+    }
+    // Guardar vista actual para restaurarla si hay F5 + login
+    if (isAdminView(currentView)) {
+      sessionStorage.setItem('bionatural_last_view', currentView);
     }
   }, [currentView]);
 
