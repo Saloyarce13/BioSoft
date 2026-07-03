@@ -16,6 +16,7 @@ import {
 interface UserProfilePanelProps {
   user: { name: string; email: string; role: string };
   onLogout: () => void;
+  onUserUpdate?: (updated: { name: string }) => void;
 }
 
 const getUserStats = (role: string) => {
@@ -58,7 +59,7 @@ const getUserStats = (role: string) => {
   }
 };
 
-export function UserProfilePanel({ user, onLogout }: UserProfilePanelProps) {
+export function UserProfilePanel({ user, onLogout, onUserUpdate }: UserProfilePanelProps) {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [saving, setSaving] = useState(false);
   const [profileData, setProfileData] = useState({
@@ -120,8 +121,10 @@ export function UserProfilePanel({ user, onLogout }: UserProfilePanelProps) {
       setProfileData(data);
       setIsEditingProfile(false);
       toast.success('Perfil actualizado correctamente');
-      // Disparar actualización automática en todos los módulos que usan useAutoRefresh
-      window.dispatchEvent(new CustomEvent('app:refresh'));
+      // Actualizar el estado global del usuario en App.tsx
+      onUserUpdate?.({ name: data.name.trim() });
+      // Notificar a App.tsx para que recargue usuario y todos los módulos
+      window.dispatchEvent(new CustomEvent('profile:updated'));
     } catch (err: any) {
       toast.error(err?.message || 'Error al guardar el perfil');
     } finally { setSaving(false); }

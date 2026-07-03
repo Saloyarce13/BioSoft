@@ -546,6 +546,32 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Cuando el perfil se guarda, re-cargar los datos del usuario desde la API
+  // y disparar refresco en todos los módulos — sin necesidad de F5
+  React.useEffect(() => {
+    const handleProfileUpdated = async () => {
+      try {
+        const res = await apiFetch<any>('/auth/me', { ignoreAuthError: true });
+        if (res.success && res.data) {
+          const d = res.data;
+          const roleName = typeof d.role === 'object' ? d.role?.name ?? '' : d.role ?? '';
+          const rolePerms: string[] = typeof d.role === 'object'
+            ? (d.role?.permissions ?? []).map((p: any) => p?.permission?.name ?? p?.name ?? p)
+            : (d.permissions ?? []);
+          setUser(prev => prev
+            ? { ...prev, name: d.name || prev.name, permissions: rolePerms.length ? rolePerms : prev.permissions }
+            : prev
+          );
+        }
+      } catch { /* ignorar errores de red */ }
+      // Actualizar todos los módulos con useAutoRefresh
+      window.dispatchEvent(new CustomEvent('app:refresh'));
+    };
+    window.addEventListener('profile:updated', handleProfileUpdated);
+    return () => window.removeEventListener('profile:updated', handleProfileUpdated);
+  }, []);
+
+
   // Refrescar datos automáticamente cuando la pestaña vuelve al foco
   React.useEffect(() => {
     const handleVisibilityChange = () => {
@@ -715,7 +741,12 @@ export default function App() {
             <Button variant="outline" size="sm" onClick={() => setIsProfileOpen(false)}>Volver al Sistema</Button>
           </div>
         </header>
-        <UserProfilePanel user={user} onLogout={handleLogout} />
+        <UserProfilePanel
+          user={user}
+          onLogout={handleLogout}
+          onUserUpdate={(updated) => setUser(prev => prev ? { ...prev, ...updated } : prev)}
+        />
+
       </div>
     );
   }

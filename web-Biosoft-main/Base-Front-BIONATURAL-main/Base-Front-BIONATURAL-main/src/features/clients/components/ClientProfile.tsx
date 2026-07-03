@@ -99,8 +99,8 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
       onNameChange?.(newName);
       setIsEditing(false);
       toast.success('Perfil actualizado correctamente');
-      // Disparar actualización automática en todos los módulos que usan useAutoRefresh
-      window.dispatchEvent(new CustomEvent('app:refresh'));
+      // Notificar a App.tsx para que recargue usuario y todos los módulos
+      window.dispatchEvent(new CustomEvent('profile:updated'));
     } catch (err: any) { toast.error(err?.message || 'Error al guardar'); }
     finally { setSaving(false); }
   };
