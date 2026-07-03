@@ -239,7 +239,13 @@ export default function App() {
           const role = u.role ? String(u.role).toLowerCase() : '';
           const isClient = role === 'cliente' || role === 'user';
           if (pathView === 'login' || pathView === 'register' || pathView === 'landing') {
-            return isClient ? 'store' : 'dashboard';
+            if (isClient) return 'store';
+            // Admin: intentar restaurar la última sección visitada (guardada en sessionStorage).
+            // Esto ocurre cuando el servidor (Render) redirige todas las rutas a '/', haciendo
+            // que window.location.pathname sea '/' en vez de '/admin/compras', etc.
+            const savedView = sessionStorage.getItem('bionatural_last_view');
+            if (savedView && isAdminView(savedView)) return savedView;
+            return 'dashboard';
           }
         }
       } catch {}
