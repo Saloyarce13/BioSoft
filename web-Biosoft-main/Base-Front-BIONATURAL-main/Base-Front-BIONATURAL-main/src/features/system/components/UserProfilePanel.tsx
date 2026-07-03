@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
@@ -70,23 +70,24 @@ export function UserProfilePanel({ user, onLogout, onUserUpdate }: UserProfilePa
   });
 
   // Cargar datos reales del usuario desde la API
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await apiFetch<any>('/auth/me');
-        if (res.success && res.data) {
-          const emp = res.data;
-          setProfileData({
-            name:    emp.name    || user.name,
-            phone:   emp.phone   || '',
-            address: emp.address || '',
-            company: emp.company || '',
-          });
-        }
-      } catch { /* usar valores por defecto */ }
-    };
-    load();
+  const load = useCallback(async () => {
+    try {
+      const res = await apiFetch<any>('/auth/me');
+      if (res.success && res.data) {
+        const emp = res.data;
+        setProfileData({
+          name:    emp.name    || user.name,
+          phone:   emp.phone   || '',
+          address: emp.address || '',
+          company: emp.company || '',
+        });
+      }
+    } catch { /* usar valores por defecto */ }
   }, [user.name]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const userStats = getUserStats(user.role);
 
@@ -121,9 +122,11 @@ export function UserProfilePanel({ user, onLogout, onUserUpdate }: UserProfilePa
       setProfileData(data);
       setIsEditingProfile(false);
       toast.success('Perfil actualizado correctamente');
-      // Actualizar el estado global del usuario en App.tsx
+      // Recargar datos frescos del servidor para mostrar cambios de inmediato
+      await load();
+      // Actualizar el estado global del usuario en App.tsx (header, sidebar, etc.)
       onUserUpdate?.({ name: data.name.trim() });
-      // Notificar a App.tsx para que recargue usuario y todos los módulos
+      // Notificar a todos los módulos para que recarguen sus datos
       window.dispatchEvent(new CustomEvent('profile:updated'));
     } catch (err: any) {
       toast.error(err?.message || 'Error al guardar el perfil');

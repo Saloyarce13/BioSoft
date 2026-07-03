@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 import { Input } from '../../../components/ui/input';
 import { Label } from '../../../components/ui/label';
@@ -56,26 +56,27 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
   const [saving, setSaving] = useState(false);
   const [pwError, setPwError] = useState('');
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const meRes = await apiFetch<UserData>('/auth/me');
-        if (meRes.success) setUserData(meRes.data);
-        const clientsRes = await apiFetch<ClientData[]>('/clients');
-        if (clientsRes.success) {
-          const mine = (clientsRes.data as any[]).find((c: any) => c.email?.toLowerCase() === user.email.toLowerCase());
-          if (mine) setClientData(mine);
-        }
-        const salesRes = await apiFetch<any[]>('/sales');
-        if (salesRes.success) {
-          setOrderCount((salesRes.data as any[]).filter((s: any) => s.client?.email?.toLowerCase() === user.email.toLowerCase()).length);
-        }
-      } catch { toast.error('Error al cargar el perfil'); }
-      finally { setLoading(false); }
-    };
-    load();
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const meRes = await apiFetch<UserData>('/auth/me');
+      if (meRes.success) setUserData(meRes.data);
+      const clientsRes = await apiFetch<ClientData[]>('/clients');
+      if (clientsRes.success) {
+        const mine = (clientsRes.data as any[]).find((c: any) => c.email?.toLowerCase() === user.email.toLowerCase());
+        if (mine) setClientData(mine);
+      }
+      const salesRes = await apiFetch<any[]>('/sales');
+      if (salesRes.success) {
+        setOrderCount((salesRes.data as any[]).filter((s: any) => s.client?.email?.toLowerCase() === user.email.toLowerCase()).length);
+      }
+    } catch { toast.error('Error al cargar el perfil'); }
+    finally { setLoading(false); }
   }, [user.email]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const openEdit = () => {
     setEditForm({ name: userData?.name || clientData?.name || '', phone: clientData?.phone || '', address: clientData?.address || '' });
@@ -99,7 +100,10 @@ export function ClientProfile({ user, onBack, onLogout, onNameChange }: ClientPr
       onNameChange?.(newName);
       setIsEditing(false);
       toast.success('Perfil actualizado correctamente');
-      // Notificar a App.tsx para que recargue usuario y todos los módulos
+      // Recargar datos desde el servidor para reflejar cambios de inmediato
+      await load();
+      // Notificar a App.tsx para que actualice el nombre en el header/sidebar
+      onNameChange?.(newName);
       window.dispatchEvent(new CustomEvent('profile:updated'));
     } catch (err: any) { toast.error(err?.message || 'Error al guardar'); }
     finally { setSaving(false); }
